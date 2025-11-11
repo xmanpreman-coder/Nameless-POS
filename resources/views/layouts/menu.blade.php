@@ -319,6 +319,11 @@
                 <i class="c-sidebar-nav-icon bi bi-camera-video" style="line-height: 1;"></i> Test Camera
             </a>
         </li>
+        <li class="c-sidebar-nav-item">
+            <a class="c-sidebar-nav-link {{ request()->routeIs('scanner.external-setup') ? 'c-active' : '' }}" href="{{ route('scanner.external-setup') }}">
+                <i class="c-sidebar-nav-icon bi bi-phone" style="line-height: 1;"></i> External Scanner Setup
+            </a>
+        </li>
     </ul>
 </li>
 

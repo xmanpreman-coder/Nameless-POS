@@ -20,6 +20,12 @@ Route::middleware('auth')->group(function() {
         Route::get('/settings', [ScannerController::class, 'settings'])->name('settings');
         Route::post('/settings', [ScannerController::class, 'updateSettings'])->name('settings.update');
         Route::get('/test-camera', [ScannerController::class, 'testCamera'])->name('test-camera');
+        Route::get('/external-setup', function() {
+            return view('scanner::external-setup');
+        })->name('external-setup');
+        Route::get('/barcode-to-pc-guide', function() {
+            return view('scanner::barcode-to-pc-guide');
+        })->name('barcode-to-pc-guide');
         Route::post('/search-product', [ScannerController::class, 'searchProduct'])->name('search-product');
     });
 });

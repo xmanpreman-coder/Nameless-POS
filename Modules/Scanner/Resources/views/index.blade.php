@@ -81,6 +81,27 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-lg-4 col-md-6">
+                            <div class="card bg-gradient-dark text-white mb-4">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="text-white">External Scanner</h6>
+                                            <p class="mb-0">Setup mobile apps & external devices</p>
+                                        </div>
+                                        <div>
+                                            <i class="bi bi-phone" style="font-size: 2.5rem;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-transparent border-0">
+                                    <a href="{{ route('scanner.external-setup') }}" class="btn btn-light btn-sm">
+                                        <i class="bi bi-gear-fill"></i> Setup External
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Scanner Info -->

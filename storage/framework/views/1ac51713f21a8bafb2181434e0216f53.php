@@ -1,3 +1,5 @@
+
+
 <?php $__env->startSection('title', 'POS'); ?>
 
 <?php $__env->startSection('third_party_stylesheets'); ?>
@@ -24,7 +26,7 @@ $__split = function ($name, $params = []) {
 };
 [$__name, $__params] = $__split('search-product', []);
 
-$__html = app('livewire')->mount($__name, $__params, 'tIBeBKR', $__slots ?? [], get_defined_vars());
+$__html = app('livewire')->mount($__name, $__params, 'iGfI2UL', $__slots ?? [], get_defined_vars());
 
 echo $__html;
 
@@ -34,13 +36,15 @@ unset($__params);
 unset($__split);
 if (isset($__slots)) unset($__slots);
 ?>
+                <?php echo $__env->make('includes.scanner-modal', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+                <?php echo $__env->make('includes.scanner-help', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
                 <?php
 $__split = function ($name, $params = []) {
     return [$name, $params];
 };
 [$__name, $__params] = $__split('pos.product-list', ['categories' => $product_categories]);
 
-$__html = app('livewire')->mount($__name, $__params, 'HRKkkx0', $__slots ?? [], get_defined_vars());
+$__html = app('livewire')->mount($__name, $__params, 'tALr8zq', $__slots ?? [], get_defined_vars());
 
 echo $__html;
 
@@ -58,7 +62,7 @@ $__split = function ($name, $params = []) {
 };
 [$__name, $__params] = $__split('pos.checkout', ['cartInstance' => 'sale','customers' => $customers]);
 
-$__html = app('livewire')->mount($__name, $__params, 'FDsIzAp', $__slots ?? [], get_defined_vars());
+$__html = app('livewire')->mount($__name, $__params, '7SmqzP6', $__slots ?? [], get_defined_vars());
 
 echo $__html;
 
@@ -74,6 +78,9 @@ if (isset($__slots)) unset($__slots);
 <?php $__env->stopSection(); ?>
 
 <?php $__env->startPush('page_scripts'); ?>
+    <!-- QuaggaJS Library for Barcode Scanning -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script src="<?php echo e(asset('js/pos-scanner.js')); ?>"></script>
     <script src="<?php echo e(asset('js/jquery-mask-money.js')); ?>"></script>
     <script>
         $(document).ready(function () {

@@ -36,6 +36,9 @@
     
     <!-- Scanner Utils -->
     <script src="{{ asset('js/scanner-utils.js') }}"></script>
+    
+    <!-- External Scanner Handler -->
+    <script src="{{ asset('js/external-scanner.js') }}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

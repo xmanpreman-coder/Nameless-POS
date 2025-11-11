@@ -8,7 +8,15 @@
                             <i class="bi bi-search text-primary"></i>
                         </div>
                     </div>
-                    <input wire:keydown.escape="resetQuery" wire:model.live.debounce.500ms="query" type="text" class="form-control" placeholder="Type product name or code....">
+                    <input wire:keydown.escape="resetQuery" wire:model.live.debounce.500ms="query" type="text" class="form-control" placeholder="Type product name or code, or use scanner..." id="product-search-input">
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-primary" id="open-scanner-btn" title="Open Barcode Scanner">
+                            <i class="bi bi-upc-scan"></i>
+                        </button>
+                        <button type="button" class="btn btn-success" id="quick-scan-btn" style="display: none;" title="Quick Camera Scan">
+                            <i class="bi bi-camera"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -23,6 +31,27 @@
             </div>
         </div>
     </div>
+
+    <!-- Scanner Notifications -->
+    <!-- __BLOCK__ --><?php if(session()->has('scanner_success')): ?>
+        <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+            <i class="bi bi-check-circle"></i> <?php echo e(session('scanner_success')); ?>
+
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    <?php endif; ?> <!-- __ENDBLOCK__ -->
+
+    <!-- __BLOCK__ --><?php if(session()->has('scanner_error')): ?>
+        <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> <?php echo e(session('scanner_error')); ?>
+
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    <?php endif; ?> <!-- __ENDBLOCK__ -->
 
     <!-- __BLOCK__ --><?php if(!empty($query)): ?>
         <div wire:click="resetQuery" class="position-fixed w-100 h-100" style="left: 0; top: 0; right: 0; bottom: 0;z-index: 1;"></div>
