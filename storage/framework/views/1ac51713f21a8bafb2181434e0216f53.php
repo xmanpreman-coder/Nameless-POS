@@ -1,58 +1,96 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'POS'); ?>
 
-@section('title', 'POS')
+<?php $__env->startSection('third_party_stylesheets'); ?>
 
-@section('third_party_stylesheets')
+<?php $__env->stopSection(); ?>
 
-@endsection
-
-@section('breadcrumb')
+<?php $__env->startSection('breadcrumb'); ?>
     <ol class="breadcrumb border-0 m-0">
-        <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
+        <li class="breadcrumb-item"><a href="<?php echo e(route('home')); ?>">Home</a></li>
         <li class="breadcrumb-item active">POS</li>
     </ol>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
     <div class="container-fluid">
         <div class="row">
             <div class="col-12">
-                @include('utils.alerts')
+                <?php echo $__env->make('utils.alerts', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
             </div>
             <div class="col-lg-7">
-                <livewire:search-product/>
-                @include('includes.scanner-modal')
-                @include('includes.scanner-help')
-                <livewire:pos.product-list :categories="$product_categories"/>
+                <?php
+$__split = function ($name, $params = []) {
+    return [$name, $params];
+};
+[$__name, $__params] = $__split('search-product', []);
+
+$__html = app('livewire')->mount($__name, $__params, 'tIBeBKR', $__slots ?? [], get_defined_vars());
+
+echo $__html;
+
+unset($__html);
+unset($__name);
+unset($__params);
+unset($__split);
+if (isset($__slots)) unset($__slots);
+?>
+                <?php
+$__split = function ($name, $params = []) {
+    return [$name, $params];
+};
+[$__name, $__params] = $__split('pos.product-list', ['categories' => $product_categories]);
+
+$__html = app('livewire')->mount($__name, $__params, 'HRKkkx0', $__slots ?? [], get_defined_vars());
+
+echo $__html;
+
+unset($__html);
+unset($__name);
+unset($__params);
+unset($__split);
+if (isset($__slots)) unset($__slots);
+?>
             </div>
             <div class="col-lg-5">
-                <livewire:pos.checkout :cart-instance="'sale'" :customers="$customers"/>
+                <?php
+$__split = function ($name, $params = []) {
+    return [$name, $params];
+};
+[$__name, $__params] = $__split('pos.checkout', ['cartInstance' => 'sale','customers' => $customers]);
+
+$__html = app('livewire')->mount($__name, $__params, 'FDsIzAp', $__slots ?? [], get_defined_vars());
+
+echo $__html;
+
+unset($__html);
+unset($__name);
+unset($__params);
+unset($__split);
+if (isset($__slots)) unset($__slots);
+?>
             </div>
         </div>
     </div>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('page_scripts')
-    <!-- QuaggaJS Library for Barcode Scanning -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-    <script src="{{ asset('js/pos-scanner.js') }}"></script>
-    <script src="{{ asset('js/jquery-mask-money.js') }}"></script>
+<?php $__env->startPush('page_scripts'); ?>
+    <script src="<?php echo e(asset('js/jquery-mask-money.js')); ?>"></script>
     <script>
         $(document).ready(function () {
             window.addEventListener('showCheckoutModal', event => {
                 $('#checkoutModal').modal('show');
 
                 $('#paid_amount').maskMoney({
-                    prefix:'{{ settings()->currency->symbol }}',
-                    thousands:'{{ settings()->currency->thousand_separator }}',
-                    decimal:'{{ settings()->currency->decimal_separator }}',
+                    prefix:'<?php echo e(settings()->currency->symbol); ?>',
+                    thousands:'<?php echo e(settings()->currency->thousand_separator); ?>',
+                    decimal:'<?php echo e(settings()->currency->decimal_separator); ?>',
                     allowZero: false,
                 });
 
                 $('#total_amount').maskMoney({
-                    prefix:'{{ settings()->currency->symbol }}',
-                    thousands:'{{ settings()->currency->thousand_separator }}',
-                    decimal:'{{ settings()->currency->decimal_separator }}',
+                    prefix:'<?php echo e(settings()->currency->symbol); ?>',
+                    thousands:'<?php echo e(settings()->currency->thousand_separator); ?>',
+                    decimal:'<?php echo e(settings()->currency->decimal_separator); ?>',
                     allowZero: true,
                 });
 
@@ -158,4 +196,6 @@
         }
     </script>
 
-@endpush
+<?php $__env->stopPush(); ?>
+
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH D:\project warnet\Nameless\Modules/Sale\Resources/views/pos/index.blade.php ENDPATH**/ ?>

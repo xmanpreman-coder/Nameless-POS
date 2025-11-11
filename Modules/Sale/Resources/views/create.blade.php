@@ -12,9 +12,10 @@
 
 @section('content')
     <div class="container-fluid mb-4">
-        <div class="row">
-            <div class="col-12">
+        <div class=\"row\">
+            <div class=\"col-12\">
                 <livewire:search-product/>
+                @include('includes.scanner-modal')
             </div>
         </div>
 
@@ -116,6 +117,9 @@
 @endsection
 
 @push('page_scripts')
+    <!-- QuaggaJS Library for Barcode Scanning -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script src="{{ asset('js/pos-scanner.js') }}"></script>
     <script src="{{ asset('js/jquery-mask-money.js') }}"></script>
     <script>
         $(document).ready(function () {

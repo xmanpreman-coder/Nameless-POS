@@ -298,6 +298,30 @@
     </li>
 <?php endif; ?>
 
+<!-- Scanner Module -->
+<li class="c-sidebar-nav-item c-sidebar-nav-dropdown <?php echo e(request()->routeIs('scanner.*') ? 'c-show' : ''); ?>">
+    <a class="c-sidebar-nav-link c-sidebar-nav-dropdown-toggle" href="#">
+        <i class="c-sidebar-nav-icon bi bi-upc-scan" style="line-height: 1;"></i> Barcode Scanner
+    </a>
+    <ul class="c-sidebar-nav-dropdown-items">
+        <li class="c-sidebar-nav-item">
+            <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('scanner.index') ? 'c-active' : ''); ?>" href="<?php echo e(route('scanner.index')); ?>">
+                <i class="c-sidebar-nav-icon bi bi-speedometer2" style="line-height: 1;"></i> Scanner Dashboard
+            </a>
+        </li>
+        <li class="c-sidebar-nav-item">
+            <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('scanner.scan') ? 'c-active' : ''); ?>" href="<?php echo e(route('scanner.scan')); ?>">
+                <i class="c-sidebar-nav-icon bi bi-camera" style="line-height: 1;"></i> Start Scanning
+            </a>
+        </li>
+        <li class="c-sidebar-nav-item">
+            <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('scanner.test-camera') ? 'c-active' : ''); ?>" href="<?php echo e(route('scanner.test-camera')); ?>">
+                <i class="c-sidebar-nav-icon bi bi-camera-video" style="line-height: 1;"></i> Test Camera
+            </a>
+        </li>
+    </ul>
+</li>
+
 <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('access_currencies|access_settings')): ?>
     <li class="c-sidebar-nav-item c-sidebar-nav-dropdown <?php echo e(request()->routeIs('currencies*') || request()->routeIs('units*') ? 'c-show' : ''); ?>">
         <a class="c-sidebar-nav-link c-sidebar-nav-dropdown-toggle" href="#">
@@ -331,6 +355,11 @@
             <li class="c-sidebar-nav-item">
                 <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('printer-settings*') ? 'c-active' : ''); ?>" href="<?php echo e(route('printer-settings.index')); ?>">
                     <i class="c-sidebar-nav-icon bi bi-printer" style="line-height: 1;"></i> Printer Settings
+                </a>
+            </li>
+            <li class="c-sidebar-nav-item">
+                <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('scanner.settings') ? 'c-active' : ''); ?>" href="<?php echo e(route('scanner.settings')); ?>">
+                    <i class="c-sidebar-nav-icon bi bi-upc-scan" style="line-height: 1;"></i> Scanner Settings
                 </a>
             </li>
             <li class="c-sidebar-nav-item">
