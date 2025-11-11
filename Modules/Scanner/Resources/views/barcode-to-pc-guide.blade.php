@@ -136,8 +136,8 @@
 
                                     <div class="mt-3">
                                         <h6 class="text-info">Request Body Template (untuk HTTP):</h6>
-                                        <pre class="bg-light p-3"><code>{"barcode": "{{ barcode }}"}</code></pre>
-                                        <small class="text-muted">Template ini akan otomatis mengganti {{ barcode }} dengan barcode yang di-scan</small>
+                                        <pre class="bg-light p-3"><code>{"barcode": "BARCODE_VALUE"}</code></pre>
+                                        <small class="text-muted">Template ini akan otomatis mengganti BARCODE_VALUE dengan barcode yang di-scan</small>
                                     </div>
                                 </div>
                             </div>

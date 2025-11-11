@@ -248,7 +248,7 @@
                                 </div>
                                 <div class="col-lg-6">
                                     <h6>Response Format:</h6>
-                                    <pre class="bg-light p-3"><code>{
+<pre class="bg-light p-3"><code>{
   "success": true,
   "message": "Product found",
   "barcode": "1234567890",
@@ -266,7 +266,7 @@
 
                             <div class="mt-4">
                                 <h6>JavaScript Integration:</h6>
-                                <pre class="bg-dark text-white p-3"><code>// Send barcode via JavaScript
+<pre class="bg-dark text-white p-3"><code>// Send barcode via JavaScript
 fetch('/api/scanner/scan', {
     method: 'POST',
     headers: {
