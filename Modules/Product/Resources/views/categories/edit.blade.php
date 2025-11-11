@@ -23,11 +23,11 @@
                             @method('patch')
                             <div class="form-group">
                                 <label class="font-weight-bold" for="category_code">Category Code <span class="text-danger">*</span></label>
-                                <input class="form-control" type="text" name="category_code" required value="{{ $category->category_code }}">
+                                <input class="form-control" type="text" id="category_code" name="category_code" required value="{{ $category->category_code }}">
                             </div>
                             <div class="form-group">
                                 <label class="font-weight-bold" for="category_name">Category Name <span class="text-danger">*</span></label>
-                                <input class="form-control" type="text" name="category_name" required value="{{ $category->category_name }}">
+                                <input class="form-control" type="text" id="category_name" name="category_name" required value="{{ $category->category_name }}">
                             </div>
                             <div class="form-group">
                                 <button type="submit" class="btn btn-primary">Update <i class="bi bi-check"></i></button>

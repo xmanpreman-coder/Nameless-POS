@@ -127,7 +127,7 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="product_unit">Unit <i class="bi bi-question-circle-fill text-info" data-toggle="tooltip" data-placement="top" title="This short text will be placed after Product Quantity."></i> <span class="text-danger">*</span></label>
-                                        <select class="form-control" name="product_unit" id="product_unit">
+                                        <select class="form-control" name="product_unit" id="product_unit" required>
                                             <option value="" selected >Select Unit</option>
                                             <?php $__currentLoopData = \Modules\Setting\Entities\Unit::all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $unit): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                                                 <option value="<?php echo e($unit->short_name); ?>"><?php echo e($unit->name . ' | ' . $unit->short_name); ?></option>
@@ -149,7 +149,7 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="form-group">
-                                <label for="document-dropzone">Product Images <i class="bi bi-question-circle-fill text-info" data-toggle="tooltip" data-placement="top" title="Max Files: 3, Max File Size: 1MB, Image Size: 400x400"></i></label>
+                                <label>Product Images <i class="bi bi-question-circle-fill text-info" data-toggle="tooltip" data-placement="top" title="Max Files: 3, Max File Size: 1MB, Image Size: 400x400"></i></label>
                                 <div class="dropzone d-flex flex-wrap align-items-center justify-content-center" id="document-dropzone">
                                     <div class="dz-message" data-dz-message>
                                         <i class="bi bi-cloud-arrow-up"></i>
