@@ -68,7 +68,10 @@ class ProductController extends Controller
     public function create() {
         abort_if(Gate::denies('create_products'), 403);
 
-        return view('product::products.create');
+        $units = \Modules\Setting\Entities\Unit::all();
+        $categories = Category::all();
+        
+        return view('product::products.create', compact('units', 'categories'));
     }
 
 
@@ -97,7 +100,10 @@ class ProductController extends Controller
     public function edit(Product $product) {
         abort_if(Gate::denies('edit_products'), 403);
 
-        return view('product::products.edit', compact('product'));
+        $units = \Modules\Setting\Entities\Unit::all();
+        $categories = Category::all();
+        
+        return view('product::products.edit', compact('product', 'units', 'categories'));
     }
 
 
