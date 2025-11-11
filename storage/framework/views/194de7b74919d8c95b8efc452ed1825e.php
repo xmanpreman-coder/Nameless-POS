@@ -34,11 +34,8 @@
 
     <?php echo $__env->make('includes.main-js', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
     
-    <!-- Scanner Utils -->
+    <!-- Scanner Utils (Load first) -->
     <script src="<?php echo e(asset('js/scanner-utils.js')); ?>"></script>
-    
-    <!-- External Scanner Handler -->
-    <script src="<?php echo e(asset('js/external-scanner.js')); ?>"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {

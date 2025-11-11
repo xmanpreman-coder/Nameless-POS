@@ -28,19 +28,19 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="product_name">Product Name <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" name="product_name" required value="{{ old('product_name') }}">
+                                        <input type="text" class="form-control" id="product_name" name="product_name" required value="{{ old('product_name') }}">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="product_sku">SKU (Gudang) <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" name="product_sku" required value="{{ old('product_sku') }}" placeholder="Kode SKU untuk gudang">
+                                        <input type="text" class="form-control" id="product_sku" name="product_sku" required value="{{ old('product_sku') }}" placeholder="Kode SKU untuk gudang">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="product_gtin">GTIN (Barcode) <i class="bi bi-question-circle-fill text-info" data-toggle="tooltip" data-placement="top" title="Global Trade Item Number, biasanya nomor barcode di produk"></i></label>
-                                        <input type="text" class="form-control" name="product_gtin" value="{{ old('product_gtin') }}" placeholder="Kode GTIN/Barcode produk">
+                                        <input type="text" class="form-control" id="product_gtin" name="product_gtin" value="{{ old('product_gtin') }}" placeholder="Kode GTIN/Barcode produk">
                                     </div>
                                 </div>
                             </div>
@@ -96,13 +96,13 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="product_quantity">Quantity <span class="text-danger">*</span></label>
-                                        <input type="number" class="form-control" name="product_quantity" required value="{{ old('product_quantity') }}" min="1">
+                                        <input type="number" class="form-control" id="product_quantity" name="product_quantity" required value="{{ old('product_quantity') }}" min="1">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="product_stock_alert">Alert Quantity <span class="text-danger">*</span></label>
-                                        <input type="number" class="form-control" name="product_stock_alert" required value="{{ old('product_stock_alert', 0) }}" min="0" max="100">
+                                        <input type="number" class="form-control" id="product_stock_alert" name="product_stock_alert" required value="{{ old('product_stock_alert', 0) }}" min="0" max="100">
                                     </div>
                                 </div>
                             </div>
@@ -111,7 +111,7 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="product_order_tax">Tax (%)</label>
-                                        <input type="number" class="form-control" name="product_order_tax" value="{{ old('product_order_tax') }}" min="1">
+                                        <input type="number" class="form-control" id="product_order_tax" name="product_order_tax" value="{{ old('product_order_tax') }}" min="1">
                                     </div>
                                 </div>
                                 <div class="col-md-4">
