@@ -64,8 +64,8 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="barcode_symbology">Barcode Symbology <span class="text-danger">*</span></label>
-                                        <select class="form-control" name="product_barcode_symbology" id="barcode_symbology" required>
+                                        <label for="product_barcode_symbology">Barcode Symbology <span class="text-danger">*</span></label>
+                                        <select class="form-control" name="product_barcode_symbology" id="product_barcode_symbology" required>
                                             <option value="" selected disabled>Select Symbology</option>
                                             <option value="C128">Code 128</option>
                                             <option value="C39">Code 39</option>
@@ -149,8 +149,8 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="form-group">
-                                <label for="image">Product Images <i class="bi bi-question-circle-fill text-info" data-toggle="tooltip" data-placement="top" title="Max Files: 3, Max File Size: 1MB, Image Size: 400x400"></i></label>
-                                <div class="dropzone d-flex flex-wrap align-items-center justify-content-center" id="document-dropzone">
+                                <label for="product_images">Product Images <i class="bi bi-question-circle-fill text-info" data-toggle="tooltip" data-placement="top" title="Max Files: 3, Max File Size: 1MB, Image Size: 400x400"></i></label>
+                                <div class="dropzone d-flex flex-wrap align-items-center justify-content-center" id="product_images">
                                     <div class="dz-message" data-dz-message>
                                         <i class="bi bi-cloud-arrow-up"></i>
                                     </div>
