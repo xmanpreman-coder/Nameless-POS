@@ -149,8 +149,8 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="form-group">
-                                <label for="product_images">Product Images <i class="bi bi-question-circle-fill text-info" data-toggle="tooltip" data-placement="top" title="Max Files: 3, Max File Size: 1MB, Image Size: 400x400"></i></label>
-                                <div class="dropzone d-flex flex-wrap align-items-center justify-content-center" id="product_images">
+                                <label for="document-dropzone">Product Images <i class="bi bi-question-circle-fill text-info" data-toggle="tooltip" data-placement="top" title="Max Files: 3, Max File Size: 1MB, Image Size: 400x400"></i></label>
+                                <div class="dropzone d-flex flex-wrap align-items-center justify-content-center" id="document-dropzone">
                                     <div class="dz-message" data-dz-message>
                                         <i class="bi bi-cloud-arrow-up"></i>
                                     </div>
