@@ -1,0 +1,11 @@
+{
+    "name": "Scanner",
+    "alias": "scanner",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Scanner\\Providers\\ScannerServiceProvider"
+    ],
+    "files": []
+}

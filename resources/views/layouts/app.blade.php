@@ -33,6 +33,9 @@
     </div>
 
     @include('includes.main-js')
+    
+    <!-- Scanner Utils -->
+    <script src="{{ asset('js/scanner-utils.js') }}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
