@@ -111,7 +111,7 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="product_order_tax">Tax (%)</label>
-                                        <input type="number" class="form-control" id="product_order_tax" name="product_order_tax" value="{{ old('product_order_tax') }}" min="1">
+                                        <input type="number" class="form-control" id="product_order_tax" name="product_order_tax" value="{{ old('product_order_tax') }}" min="0" max="100" step="0.01">
                                     </div>
                                 </div>
                                 <div class="col-md-4">

@@ -16,11 +16,11 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="category_code">Category Code <span class="text-danger">*</span></label>
-                        <input class="form-control" type="text" name="category_code" required value="<?php echo e($category_code); ?>">
+                        <input class="form-control" type="text" id="category_code" name="category_code" required value="<?php echo e($category_code); ?>">
                     </div>
                     <div class="form-group">
                         <label for="category_name">Category Name <span class="text-danger">*</span></label>
-                        <input class="form-control" type="text" name="category_name" required>
+                        <input class="form-control" type="text" id="category_name" name="category_name" required>
                     </div>
                 </div>
                 <div class="modal-footer">
