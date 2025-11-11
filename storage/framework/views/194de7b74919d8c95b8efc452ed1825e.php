@@ -2,40 +2,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>@yield('title')</title>
+    <title><?php echo $__env->yieldContent('title'); ?></title>
     <meta content="Fahim Anzam Dip" name="author">
     <meta content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' name='viewport'>
 
     <!-- Favicon -->
-    <link rel="icon" href="{{ asset('images/favicon.png') }}">
+    <link rel="icon" href="<?php echo e(asset('images/favicon.png')); ?>">
 
-    @include('includes.main-css')
+    <?php echo $__env->make('includes.main-css', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 </head>
 
 <body class="c-app">
-    @include('layouts.sidebar')
+    <?php echo $__env->make('layouts.sidebar', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
 
     <div class="c-wrapper">
         <header class="c-header c-header-light c-header-fixed">
-            @include('layouts.header')
+            <?php echo $__env->make('layouts.header', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
             <div class="c-subheader justify-content-between px-3">
-                @yield('breadcrumb')
+                <?php echo $__env->yieldContent('breadcrumb'); ?>
             </div>
         </header>
 
         <div class="c-body">
             <main class="c-main">
-                @yield('content')
+                <?php echo $__env->yieldContent('content'); ?>
             </main>
         </div>
 
-        @include('layouts.footer')
+        <?php echo $__env->make('layouts.footer', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
     </div>
 
-    @include('includes.main-js')
+    <?php echo $__env->make('includes.main-js', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
     
-    <!-- Scanner Utils (Load first) -->
-    <script src="{{ asset('js/scanner-utils.js') }}"></script>
+    <!-- Scanner Utils -->
+    <script src="<?php echo e(asset('js/scanner-utils.js')); ?>"></script>
+    
+    <!-- External Scanner Handler -->
+    <script src="<?php echo e(asset('js/external-scanner.js')); ?>"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -93,3 +96,4 @@
     </script>
 </body>
 </html>
+<?php /**PATH D:\project warnet\Nameless\resources\views/layouts/app.blade.php ENDPATH**/ ?>

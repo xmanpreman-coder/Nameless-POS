@@ -3,6 +3,9 @@
  * Handles barcode input from third-party scanner apps like Barcode to PC
  */
 
+// Prevent multiple declarations
+if (typeof window.ExternalScannerHandler === 'undefined') {
+
 class ExternalScannerHandler {
     constructor() {
         this.apiEndpoint = '/api/scanner/scan';
@@ -74,32 +77,13 @@ class ExternalScannerHandler {
     }
 
     setupWebSocketConnection() {
-        // Setup WebSocket connection for real-time scanning
-        if ('WebSocket' in window) {
-            try {
-                const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                const wsUrl = `${wsProtocol}//${window.location.host}/scanner-ws`;
-                
-                this.websocket = new WebSocket(wsUrl);
-                
-                this.websocket.onmessage = (event) => {
-                    const data = JSON.parse(event.data);
-                    if (data.type === 'barcode_scan' && data.barcode) {
-                        this.processBarcode(data.barcode, 'websocket');
-                    }
-                };
-
-                this.websocket.onopen = () => {
-                    console.log('Scanner WebSocket connected');
-                };
-
-                this.websocket.onerror = (error) => {
-                    console.warn('Scanner WebSocket error:', error);
-                };
-            } catch (error) {
-                console.warn('WebSocket not available for scanner');
-            }
-        }
+        // WebSocket connection is optional for external scanners
+        // Most external scanner apps use HTTP POST requests instead
+        // Skip WebSocket setup to avoid connection errors
+        console.log('External scanner ready - HTTP endpoints active');
+        
+        // Note: WebSocket can be implemented later if needed for real-time features
+        // For now, HTTP POST to /api/scanner/scan is the primary method
     }
 
     setupSecureListener() {
@@ -355,29 +339,38 @@ class ExternalScannerHandler {
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    window.externalScannerHandler = new ExternalScannerHandler();
-    
-    // Make global functions available
-    window.scanBarcode = ExternalScannerHandler.handleBarcode;
-    window.isScannerReady = ExternalScannerHandler.isReady;
+    if (typeof window.externalScannerHandler === 'undefined') {
+        window.externalScannerHandler = new ExternalScannerHandler();
+        
+        // Make global functions available
+        window.scanBarcode = ExternalScannerHandler.handleBarcode;
+        window.isScannerReady = ExternalScannerHandler.isReady;
+    }
 });
 
+// Close the class declaration guard
+}
+
 // Add CSS for animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
+if (!document.getElementById('external-scanner-styles')) {
+    const style = document.createElement('style');
+    style.id = 'external-scanner-styles';
+    style.textContent = `
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
-        to {
-            transform: translateX(0);
-            opacity: 1;
+        
+        .scanner-product-preview {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
-    }
-    
-    .scanner-product-preview {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-`;
-document.head.appendChild(style);
+    `;
+    document.head.appendChild(style);
+}
+

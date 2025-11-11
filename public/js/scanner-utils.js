@@ -126,8 +126,10 @@ class ScannerUtils {
 }
 
 // Add CSS for notifications
-const style = document.createElement('style');
-style.textContent = `
+if (!document.getElementById('scanner-utils-styles')) {
+    const style = document.createElement('style');
+    style.id = 'scanner-utils-styles';
+    style.textContent = `
     @keyframes slideInRight {
         from {
             transform: translateX(100%);
@@ -144,7 +146,8 @@ style.textContent = `
         border-radius: 8px;
     }
 `;
-document.head.appendChild(style);
+    document.head.appendChild(style);
+}
 
 // Make available globally
 window.ScannerUtils = ScannerUtils;
