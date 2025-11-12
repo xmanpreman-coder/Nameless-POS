@@ -1,9 +1,3 @@
-<picture>
-    <source srcset="public/images/logo.png"  
-            media="(prefers-color-scheme: dark)">
-    <img src="public/images/logo-dark.png" alt="App Logo">
-</picture>
-
 > **Important Note:** This Project is ready for Production. But use code from main branch only. If you find any bug or have any suggestion please create an Issue.
 
 # Local Installation
@@ -26,15 +20,13 @@
 
 This will start the application along with the mysql database using docker compose. Note that the `DB_HOST` variable must be the mysql docker container name, in this case `db`.
 
-- run `` docker build -t triangle-pos . `` 
+- run `` docker build -t nameless-pos . `` 
 - run `` docker compose up ``
 - then visit `` http://localhost:8000 or http://127.0.0.1:8000 ``.
 
 # Admin Credentials
 > Email: super.admin@test.com || Password: 12345678
 
-## Demo
-![Nameless.POS](public/images/screenshot.jpg)
 **Live Demo:** will update soon
 
 ## Nameless.POS Features
@@ -54,5 +46,4 @@ This will start the application along with the mysql database using docker compo
 - **System Settings**
 - **Reports**
 
-# License
-**[Creative Commons Attribution 4.0	cc-by-4.0](https://creativecommons.org/licenses/by/4.0/)**
+
