@@ -38,5 +38,13 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::get('/payment-flow/chart-data', 'HomeController@paymentChart')
         ->name('payment-flow.chart');
+
+    // Scanner Settings Routes
+    Route::get('/scanner-settings', 'ScannerSettingsController@index')->name('scanner-settings.index');
+    Route::get('/scanner-settings', 'ScannerSettingsController@index')->name('scanner.settings');
+    Route::post('/scanner-settings/test', 'ScannerSettingsController@testConnection')->name('scanner.settings.test');
+    Route::get('/scanner-settings/network-info', 'ScannerSettingsController@getNetworkInfo')->name('scanner.settings.network');
+    Route::get('/scanner-settings/qr-config', 'ScannerSettingsController@getQRConfig')->name('scanner.settings.qr');
+    Route::get('/scanner-settings/export', 'ScannerSettingsController@exportConfig')->name('scanner.settings.export');
 });
 

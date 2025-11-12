@@ -12,6 +12,6 @@ class VerifyCsrfToken extends Middleware
      * @var array
      */
     protected $except = [
-        //
+        'scanner/external/receive', // External scanner endpoint for mobile apps
     ];
 }

@@ -1,20 +1,85 @@
 /**
  * POS Scanner Integration
- * Integrates barcode scanner functionality with Livewire components
+ * Initializes the correct scanner UI and behavior based on system settings.
  */
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Ensure scanner elements and settings are present
+    if (document.getElementById('product-search-input') && typeof window.scannerSettings !== 'undefined') {
+
+        const scannerType = window.scannerSettings.scanner_type;
+        const externalTypes = ['external', 'usb', 'bluetooth'];
+
+        // --- Check scanner mode from settings ---
+        if (externalTypes.includes(scannerType)) {
+            initializeExternalScannerMode(scannerType);
+        } else {
+            initializeCameraScannerMode();
+        }
+
+    } else {
+        console.warn('Scanner settings or search input not found. Defaulting to camera mode.');
+        // Fallback to default camera mode if settings are missing
+        if (document.getElementById('product-search-input')) {
+            initializeCameraScannerMode();
+        }
+    }
+});
+
+/**
+ * Configures the UI for external scanner usage.
+ * Changes the main scanner button to focus the search input.
+ */
+function initializeExternalScannerMode(type) {
+    console.log(`POS Scanner Mode: EXTERNAL (${type})`);
+
+    const openScannerBtn = document.getElementById('open-scanner-btn');
+    const searchInput = document.getElementById('product-search-input');
+
+    if (openScannerBtn && searchInput) {
+        // Change button icon and text
+        openScannerBtn.innerHTML = '<i class="bi bi-keyboard"></i> Focus Input';
+        
+        // Change button functionality to focus the search input
+        openScannerBtn.addEventListener('click', (event) => {
+            event.preventDefault(); // Prevent any default action
+            searchInput.focus();
+        });
+    }
+
+    // Focus the main search bar initially
+    if (searchInput) {
+        searchInput.focus();
+        searchInput.placeholder = 'Ready to scan...';
+    }
+
+    // Note: external-scanner.js is already initialized and handles global listening.
+}
+
+/**
+ * Initializes the camera scanner functionality.
+ * This creates an instance of the POSScanner class which handles the modal and QuaggaJS.
+ */
+function initializeCameraScannerMode() {
+    console.log('POS Scanner Mode: CAMERA (default)');
+    window.posScanner = new POSScanner();
+}
+
+
+/**
+ * POSScanner Class
+ * Manages the camera scanner modal, QuaggaJS, and related UI events.
+ * This entire class is only used if the scanner_type is 'camera'.
+ */
 class POSScanner {
     constructor() {
         this.video = null;
         this.stream = null;
         this.isScanning = false;
         this.currentCamera = 'back';
-        this.recentScans = JSON.parse(localStorage.getItem('recent_scans') || '[]');
-        this.maxRecentScans = 10;
         
         this.initializeElements();
         this.bindEvents();
-        this.updateRecentScansDisplay();
     }
 
     initializeElements() {
@@ -23,7 +88,6 @@ class POSScanner {
         this.video = document.getElementById('modal-scanner-video');
         this.canvas = document.getElementById('modal-scanner-canvas');
         this.statusElement = document.getElementById('modal-scanner-status');
-        this.resultElement = document.getElementById('modal-scanner-result');
         
         // Control buttons
         this.startButton = document.getElementById('modal-start-camera');
@@ -40,12 +104,10 @@ class POSScanner {
         // Scanner trigger buttons
         const openScannerBtn = document.getElementById('open-scanner-btn');
         if (openScannerBtn) {
-            openScannerBtn.addEventListener('click', () => this.openScanner());
-        }
-
-        const quickScanBtn = document.getElementById('quick-scan-btn');
-        if (quickScanBtn) {
-            quickScanBtn.addEventListener('click', () => this.toggleQuickScan());
+            openScannerBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                this.openScanner();
+            });
         }
 
         // Modal control buttons
@@ -65,36 +127,13 @@ class POSScanner {
             this.searchButton.addEventListener('click', () => this.searchManualBarcode());
         }
 
-        // Manual input events
-        if (this.manualInput) {
-            this.manualInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    this.searchManualBarcode();
-                }
-            });
-
-            // Auto-search for barcode input (USB/Bluetooth scanners)
-            this.manualInput.addEventListener('input', (e) => {
-                const value = e.target.value.trim();
-                if (value.length >= 8 && this.isValidBarcode(value)) {
-                    // Auto-search after short delay
-                    clearTimeout(this.autoSearchTimeout);
-                    this.autoSearchTimeout = setTimeout(() => {
-                        this.searchManualBarcode();
-                    }, 500);
-                }
-            });
-        }
-
         // Modal events
         if (this.modal) {
             $(this.modal).on('hidden.bs.modal', () => {
                 this.stopScanning();
-                this.clearResult();
             });
 
             $(this.modal).on('shown.bs.modal', () => {
-                // Focus on manual input when modal opens
                 setTimeout(() => {
                     if (this.manualInput) {
                         this.manualInput.focus();
@@ -105,25 +144,11 @@ class POSScanner {
 
         // Listen for keyboard shortcuts
         document.addEventListener('keydown', (e) => {
-            // Ctrl + Shift + S to open scanner
             if (e.ctrlKey && e.shiftKey && e.key === 'S') {
                 e.preventDefault();
                 this.openScanner();
             }
         });
-
-        // Listen for USB/Bluetooth scanner input on search field
-        if (this.searchInput) {
-            this.searchInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    const value = e.target.value.trim();
-                    if (this.isValidBarcode(value)) {
-                        this.searchBarcode(value);
-                        e.preventDefault();
-                    }
-                }
-            });
-        }
     }
 
     openScanner() {
@@ -136,7 +161,6 @@ class POSScanner {
         try {
             this.showStatus('Starting camera...', 'info');
 
-            // Check camera permission first
             const permission = await this.checkCameraPermission();
             if (permission === 'denied') {
                 this.showStatus('Camera permission denied. Please allow camera access.', 'danger');
@@ -157,7 +181,6 @@ class POSScanner {
             await this.video.play();
             this.isScanning = true;
 
-            // Initialize QuaggaJS
             if (typeof Quagga !== 'undefined') {
                 Quagga.init({
                     inputStream: {
@@ -167,21 +190,10 @@ class POSScanner {
                         constraints: constraints.video
                     },
                     decoder: {
-                        readers: [
-                            "code_128_reader",
-                            "ean_reader", 
-                            "ean_8_reader",
-                            "code_39_reader",
-                            "upc_reader",
-                            "upc_e_reader",
-                            "codabar_reader"
-                        ]
+                        readers: ["code_128_reader", "ean_reader", "ean_8_reader", "code_39_reader", "upc_reader", "upc_e_reader", "codabar_reader"]
                     },
                     locate: true,
-                    locator: {
-                        patchSize: "medium",
-                        halfSample: true
-                    },
+                    locator: { patchSize: "medium", halfSample: true },
                     numOfWorkers: 2,
                     frequency: 10
                 }, (err) => {
@@ -194,7 +206,6 @@ class POSScanner {
                     this.showStatus('Camera ready - Point at a barcode', 'success');
                 });
 
-                // Listen for successful scans
                 Quagga.onDetected((result) => {
                     const code = result.codeResult.code;
                     this.onBarcodeDetected(code);
@@ -204,7 +215,6 @@ class POSScanner {
                 return;
             }
 
-            // Update UI
             this.startButton.style.display = 'none';
             this.stopButton.style.display = 'inline-block';
             this.switchButton.style.display = 'inline-block';
@@ -220,22 +230,12 @@ class POSScanner {
             this.stream.getTracks().forEach(track => track.stop());
             this.stream = null;
         }
-
-        if (typeof Quagga !== 'undefined') {
-            Quagga.stop();
-        }
-
-        if (this.video) {
-            this.video.srcObject = null;
-        }
-        
+        if (typeof Quagga !== 'undefined') Quagga.stop();
+        if (this.video) this.video.srcObject = null;
         this.isScanning = false;
-
-        // Update UI
         if (this.startButton) this.startButton.style.display = 'inline-block';
         if (this.stopButton) this.stopButton.style.display = 'none';
         if (this.switchButton) this.switchButton.style.display = 'none';
-        
         this.showStatus('Camera stopped', 'info');
     }
 
@@ -249,179 +249,98 @@ class POSScanner {
     }
 
     onBarcodeDetected(barcode) {
-        if (!barcode || !this.isValidBarcode(barcode)) return;
-
-        // Prevent duplicate rapid scans
-        if (this.lastScannedCode === barcode) {
-            return;
-        }
+        if (!barcode || !this.isValidBarcode(barcode) || this.lastScannedCode === barcode) return;
         this.lastScannedCode = barcode;
+        setTimeout(() => { this.lastScannedCode = null; }, 2000);
 
-        // Clear the duplicate prevention after 2 seconds
-        setTimeout(() => {
-            this.lastScannedCode = null;
-        }, 2000);
-
-        ScannerUtils.playBeep();
-        ScannerUtils.vibrate();
+        if(window.scannerSettings && window.scannerSettings.beep_sound) ScannerUtils.playBeep();
+        if(window.scannerSettings && window.scannerSettings.vibration) ScannerUtils.vibrate();
         
-        this.addToRecentScans(barcode);
         this.searchBarcode(barcode);
-        
-        // Auto-stop scanning after successful detection
         this.stopScanning();
     }
 
     searchManualBarcode() {
         const barcode = this.manualInput.value.trim();
         if (barcode) {
-            this.addToRecentScans(barcode);
             this.searchBarcode(barcode);
             this.manualInput.value = '';
         }
     }
 
     async searchBarcode(barcode) {
+        this.showStatus('Searching product...', 'info');
         try {
-            this.showStatus('Searching product...', 'info');
-
-            // Call Livewire method to search by barcode
+            // Wait a bit for Livewire to fully initialize if multiple instances detected
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
             if (window.Livewire) {
-                const component = window.Livewire.find(
-                    document.querySelector('[wire\\:id]').getAttribute('wire:id')
-                );
+                // Find SearchProduct component specifically
+                let searchComponent = null;
                 
-                if (component) {
-                    await component.call('searchByBarcode', barcode);
+                // Try to find SearchProduct component by looking for the search input
+                const searchInput = document.getElementById('product-search-input');
+                if (searchInput) {
+                    const searchContainer = searchInput.closest('[wire\\:id]');
+                    if (searchContainer) {
+                        const componentId = searchContainer.getAttribute('wire:id');
+                        searchComponent = window.Livewire.find(componentId);
+                    }
+                }
+                
+                // Fallback: iterate through all components to find SearchProduct
+                if (!searchComponent && window.Livewire.components && window.Livewire.components.componentsById) {
+                    for (const componentId in window.Livewire.components.componentsById) {
+                        const comp = window.Livewire.find(componentId);
+                        if (comp && comp.__name && comp.__name.includes('SearchProduct')) {
+                            searchComponent = comp;
+                            break;
+                        }
+                    }
+                }
+                
+                if (searchComponent && typeof searchComponent.call === 'function') {
+                    console.log('Found SearchProduct component, calling searchByBarcode...');
+                    await searchComponent.call('searchByBarcode', barcode);
                     
-                    // Listen for the result
-                    window.addEventListener('scannerResult', (event) => {
-                        const result = event.detail[0];
-                        this.handleSearchResult(result, barcode);
-                    }, { once: true });
+                    // Close scanner modal after successful scan
+                    setTimeout(() => {
+                        if (this.modal) {
+                            $(this.modal).modal('hide');
+                        }
+                    }, 1000);
+                } else {
+                    console.error('SearchProduct component not found or not callable.');
+                    this.showStatus('Search component not found. Trying manual search...', 'warning');
+                    
+                    // Fallback: manually set search input value
+                    if (searchInput) {
+                        searchInput.value = barcode;
+                        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        
+                        // Close modal
+                        setTimeout(() => {
+                            if (this.modal) {
+                                $(this.modal).modal('hide');
+                            }
+                        }, 500);
+                    }
                 }
             } else {
-                // Fallback to direct API call
-                const response = await fetch('/scanner/search-product', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({ barcode: barcode })
-                });
-
-                const data = await response.json();
-                this.handleSearchResult(data, barcode);
+                console.error('Livewire is not available.');
+                this.showStatus('Livewire not initialized.', 'danger');
             }
-
         } catch (error) {
-            console.error('Search error:', error);
-            this.showStatus('Error searching for product', 'danger');
+            console.error('Error calling Livewire component:', error);
+            this.showStatus('An error occurred during search: ' + error.message, 'danger');
         }
-    }
-
-    handleSearchResult(result, barcode) {
-        if (result.success) {
-            this.showResult(result.product);
-            this.showStatus('Product found and added!', 'success');
-            ScannerUtils.showNotification('Product added: ' + result.product.name, 'success');
-            
-            // Close modal after successful scan
-            setTimeout(() => {
-                if (this.modal) {
-                    $(this.modal).modal('hide');
-                }
-            }, 1500);
-        } else {
-            this.showStatus(result.message, 'warning');
-            ScannerUtils.showNotification(result.message, 'warning');
-        }
-    }
-
-    showResult(product) {
-        if (!this.resultElement) return;
-
-        const content = document.getElementById('modal-result-content');
-        if (content && product) {
-            content.innerHTML = `
-                <div class="d-flex align-items-center">
-                    ${product.image ? `<img src="${product.image}" class="img-thumbnail mr-3" style="width: 60px; height: 60px;">` : ''}
-                    <div>
-                        <strong>${product.name}</strong><br>
-                        <small>Code: ${product.code}</small><br>
-                        <small>Price: Rp ${new Intl.NumberFormat('id-ID').format(product.price)}</small>
-                    </div>
-                </div>
-            `;
-        }
-        
-        this.resultElement.style.display = 'block';
-    }
-
-    clearResult() {
-        if (this.resultElement) {
-            this.resultElement.style.display = 'none';
-        }
-    }
-
-    addToRecentScans(barcode) {
-        // Remove if exists
-        this.recentScans = this.recentScans.filter(scan => scan !== barcode);
-        
-        // Add to beginning
-        this.recentScans.unshift(barcode);
-        
-        // Limit size
-        if (this.recentScans.length > this.maxRecentScans) {
-            this.recentScans = this.recentScans.slice(0, this.maxRecentScans);
-        }
-        
-        // Save to localStorage
-        localStorage.setItem('recent_scans', JSON.stringify(this.recentScans));
-        
-        this.updateRecentScansDisplay();
-    }
-
-    updateRecentScansDisplay() {
-        const container = document.getElementById('modal-recent-scans');
-        if (!container) return;
-
-        if (this.recentScans.length === 0) {
-            container.innerHTML = '<small class="text-muted">No recent scans</small>';
-            return;
-        }
-
-        let html = '';
-        this.recentScans.forEach((barcode, index) => {
-            html += `
-                <div class="d-flex justify-content-between align-items-center py-1 ${index < this.recentScans.length - 1 ? 'border-bottom' : ''}">
-                    <small><code>${barcode}</code></small>
-                    <button class="btn btn-sm btn-outline-primary btn-xs" onclick="posScanner.searchBarcode('${barcode}')">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
     }
 
     isValidBarcode(barcode) {
         if (!barcode || typeof barcode !== 'string') return false;
-        
         barcode = barcode.trim();
-        
-        // Must be at least 4 characters
         if (barcode.length < 4) return false;
-
-        // Check for common barcode patterns
-        const patterns = [
-            /^\d{8}$/, // EAN-8
-            /^\d{12}$/, // UPC-A
-            /^\d{13}$/, // EAN-13
-            /^[0-9A-Za-z\-\.\_\+\*]+$/ // Code 128, Code 39, etc.
-        ];
-
+        const patterns = [/^\d{8}$/, /^\d{12}$/, /^\d{13}$/, /^[0-9A-Za-z\-\._\+\*]+$/];
         return patterns.some(pattern => pattern.test(barcode));
     }
 
@@ -436,29 +355,8 @@ class POSScanner {
 
     showStatus(message, type = 'info') {
         if (!this.statusElement) return;
-        
-        const icons = {
-            'info': 'info-circle',
-            'success': 'check-circle',
-            'warning': 'exclamation-triangle',
-            'danger': 'x-circle'
-        };
-
+        const icons = { 'info': 'info-circle', 'success': 'check-circle', 'warning': 'exclamation-triangle', 'danger': 'x-circle' };
         this.statusElement.className = `alert alert-${type}`;
         this.statusElement.innerHTML = `<i class="bi bi-${icons[type] || 'info-circle'}"></i> ${message}`;
     }
-
-    toggleQuickScan() {
-        // Quick scan functionality - open camera directly in small overlay
-        // This would be a future enhancement
-        ScannerUtils.showNotification('Quick scan feature coming soon!', 'info');
-    }
 }
-
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    // Only initialize if we're on a page with the scanner elements
-    if (document.getElementById('product-search-input')) {
-        window.posScanner = new POSScanner();
-    }
-});

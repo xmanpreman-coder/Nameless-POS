@@ -24,8 +24,11 @@
                         $settings = \Modules\Scanner\Entities\ScannerSetting::getSettings();
                     @endphp
                     
-                    <form action="{{ route('scanner.settings.update') }}" method="POST">
+                    <form action="{{ route('scanner.settings.update') }}" method="POST" id="scannerSettingsForm">
                         @csrf
+                        <input type="hidden" name="beep_sound" value="0">
+                        <input type="hidden" name="vibration" value="0">
+                        <input type="hidden" name="auto_focus" value="0">
                         
                         <!-- Scanner Type Selection -->
                         <div class="row">
@@ -41,6 +44,9 @@
                                         </option>
                                         <option {{ $settings->scanner_type == 'bluetooth' ? 'selected' : '' }} value="bluetooth">
                                             Bluetooth Scanner
+                                        </option>
+                                        <option {{ $settings->scanner_type == 'external' ? 'selected' : '' }} value="external">
+                                            External Scanner Setup (Mobile App)
                                         </option>
                                     </select>
                                 </div>
@@ -140,6 +146,93 @@
                             </div>
                         </div>
 
+                        <!-- External Scanner Settings -->
+                        <div id="external-settings" class="scanner-settings" style="{{ $settings->scanner_type !== 'external' ? 'display: none;' : '' }}">
+                            <h6 class="text-primary mt-4"><i class="bi bi-phone"></i> External Scanner Setup (Mobile App)</h6>
+                            <div class="alert alert-success">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>External Mobile Scanner Setup:</strong>
+                                <p class="mb-2">Configure your mobile barcode scanner app to connect to this POS system via HTTP requests.</p>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="card border-primary">
+                                        <div class="card-header bg-primary text-white">
+                                            <h6 class="mb-0"><i class="bi bi-gear"></i> Scanner App Configuration</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="form-group">
+                                                <label class="font-weight-bold">Server URL:</label>
+                                                <div class="input-group">
+                                                    <input type="text" class="form-control" id="external-server-url" 
+                                                           value="{{ url('/api/scanner/scan') }}" readonly>
+                                                    <div class="input-group-append">
+                                                        <button class="btn btn-outline-primary" type="button" onclick="copyToClipboard('external-server-url')">
+                                                            <i class="bi bi-clipboard"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label class="font-weight-bold">HTTP Method:</label>
+                                                <input type="text" class="form-control" value="POST" readonly>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label class="font-weight-bold">Content Type:</label>
+                                                <input type="text" class="form-control" value="application/json" readonly>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label class="font-weight-bold">Payload Format:</label>
+                                                <input type="text" class="form-control" value='{"barcode": "${BARCODE}"}' readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <div class="card border-info">
+                                        <div class="card-header bg-info text-white">
+                                            <h6 class="mb-0"><i class="bi bi-check-circle"></i> Quick Setup</h6>
+                                        </div>
+                                        <div class="card-body text-center">
+                                            <div id="external-qr-code" class="mb-3"></div>
+                                            <small class="text-muted">Scan QR code with your scanner app for automatic setup</small>
+                                            
+                                            <div class="mt-3">
+                                                <button class="btn btn-success btn-sm" onclick="testExternalConnection()">
+                                                    <i class="bi bi-wifi"></i> Test Connection
+                                                </button>
+                                            </div>
+                                            
+                                            <div id="external-connection-status" class="mt-3">
+                                                <!-- Connection status will appear here -->
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <a href="{{ route('scanner.settings') }}" class="btn btn-info btn-block">
+                                            <i class="bi bi-gear"></i> Advanced External Setup
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning mt-3">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                <strong>Recommended Apps:</strong>
+                                <ul class="mb-0 mt-2">
+                                    <li><strong>Barcode to PC</strong> - Best compatibility with this system</li>
+                                    <li><strong>QR & Barcode Scanner</strong> - Alternative with HTTP support</li>
+                                    <li>Any barcode app that supports HTTP POST requests</li>
+                                </ul>
+                            </div>
+                        </div>
+
                         <!-- General Settings -->
                         <h6 class="text-primary mt-4"><i class="bi bi-gear"></i> General Settings</h6>
                         <div class="row">
@@ -188,18 +281,23 @@
 @endsection
 
 @push('page_scripts')
+<!-- Include QR Code Library for external scanner - using local alternative -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const scannerType = document.getElementById('scanner_type');
     const cameraSettings = document.getElementById('camera-settings');
     const usbSettings = document.getElementById('usb-settings');
     const bluetoothSettings = document.getElementById('bluetooth-settings');
+    const externalSettings = document.getElementById('external-settings');
 
     function toggleScannerSettings() {
         // Hide all settings
         cameraSettings.style.display = 'none';
         usbSettings.style.display = 'none';
         bluetoothSettings.style.display = 'none';
+        externalSettings.style.display = 'none';
 
         // Show relevant settings
         const selectedType = scannerType.value;
@@ -209,10 +307,141 @@ document.addEventListener('DOMContentLoaded', function() {
             usbSettings.style.display = 'block';
         } else if (selectedType === 'bluetooth') {
             bluetoothSettings.style.display = 'block';
+        } else if (selectedType === 'external') {
+            externalSettings.style.display = 'block';
+            generateExternalQRCode();
         }
     }
 
     scannerType.addEventListener('change', toggleScannerSettings);
+    
+    // Initialize external settings if already selected
+    if (scannerType.value === 'external') {
+        generateExternalQRCode();
+    }
 });
+
+function generateExternalQRCode() {
+    const setupData = {
+        name: "Nameless POS External Scanner",
+        serverUrl: '{{ url('/api/scanner/scan') }}',
+        method: 'POST',
+        contentType: 'application/json',
+        payloadFormat: '{"barcode": "${BARCODE}"}',
+        type: 'external_scanner_setup'
+    };
+    
+    const qrContainer = document.getElementById('external-qr-code');
+    if (!qrContainer) return;
+    
+    qrContainer.innerHTML = ''; // Clear existing QR code
+    
+    try {
+        // Check if qrcode library is loaded (qrcode-generator)
+        if (typeof qrcode === 'undefined') {
+            qrContainer.innerHTML = `
+                <div class="text-center">
+                    <p class="text-warning small">QR Code library not available</p>
+                    <p class="small">Use manual configuration below</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Generate QR code using qrcode-generator library
+        const qr = qrcode(0, 'M');
+        qr.addData(JSON.stringify(setupData));
+        qr.make();
+        
+        // Create QR code image and add to container
+        qrContainer.innerHTML = qr.createImgTag(4, 8);
+        
+        console.log('QR Code generated successfully for external scanner');
+    } catch (error) {
+        console.error('QR Code generation failed:', error);
+        qrContainer.innerHTML = `
+            <div class="text-center">
+                <p class="text-danger small">QR Code generation failed</p>
+                <p class="small">Please use manual setup</p>
+            </div>
+        `;
+    }
+}
+
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    const text = element.value || element.textContent;
+    
+    navigator.clipboard.writeText(text).then(function() {
+        // Show success feedback
+        const button = element.parentElement.querySelector('button');
+        if (button) {
+            const originalIcon = button.innerHTML;
+            button.innerHTML = '<i class="bi bi-check text-success"></i>';
+            setTimeout(() => {
+                button.innerHTML = originalIcon;
+            }, 1500);
+        }
+        
+        // Show toast notification
+        showToast('Copied to clipboard!', 'success');
+    }).catch(function(error) {
+        console.error('Copy failed:', error);
+        showToast('Copy failed: ' + error.message, 'error');
+    });
+}
+
+function testExternalConnection() {
+    const statusDiv = document.getElementById('external-connection-status');
+    statusDiv.innerHTML = '<div class="alert alert-info alert-sm"><i class="bi bi-hourglass-split"></i> Testing connection...</div>';
+    
+    fetch('/api/scanner/scan', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        },
+        body: JSON.stringify({ barcode: 'TEST_EXTERNAL_CONNECTION' })
+    })
+    .then(response => {
+        if (response.ok) {
+            statusDiv.innerHTML = `
+                <div class="alert alert-success alert-sm">
+                    <i class="bi bi-check-circle"></i> Connection successful!
+                    <br><small>External scanner endpoint is working</small>
+                </div>
+            `;
+        } else {
+            throw new Error(`HTTP ${response.status}`);
+        }
+    })
+    .catch(error => {
+        statusDiv.innerHTML = `
+            <div class="alert alert-danger alert-sm">
+                <i class="bi bi-x-circle"></i> Connection failed
+                <br><small>Error: ${error.message}</small>
+            </div>
+        `;
+    });
+}
+
+function showToast(message, type = 'info') {
+    // Simple toast notification
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'error' ? 'danger' : type} position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 250px;';
+    toast.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info-circle'} me-2"></i>
+            ${message}
+        </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
 </script>
 @endpush

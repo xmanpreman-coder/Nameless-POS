@@ -14,6 +14,7 @@ use Modules\Sale\Entities\Sale;
 use Modules\Sale\Entities\SaleDetails;
 use Modules\Sale\Entities\SalePayment;
 use Modules\Sale\Http\Requests\StorePosSaleRequest;
+use Modules\Scanner\Entities\ScannerSetting;
 
 class PosController extends Controller
 {
@@ -23,8 +24,9 @@ class PosController extends Controller
 
         $customers = Customer::all();
         $product_categories = Category::all();
+        $scanner_settings = ScannerSetting::getSettings();
 
-        return view('sale::pos.index', compact('product_categories', 'customers'));
+        return view('sale::pos.index', compact('product_categories', 'customers', 'scanner_settings'));
     }
 
 

@@ -1,25 +1,25 @@
 <div>
-    @if (session()->has('message'))
+    <!-- __BLOCK__ --><?php if(session()->has('message')): ?>
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
             <div class="alert-body">
-                <span>{{ session('message') }}</span>
+                <span><?php echo e(session('message')); ?></span>
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
         </div>
-    @endif
+    <?php endif; ?> <!-- __ENDBLOCK__ -->
 
-    @if (session()->has('success'))
+    <!-- __BLOCK__ --><?php if(session()->has('success')): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <div class="alert-body">
-                <span>{{ session('success') }}</span>
+                <span><?php echo e(session('success')); ?></span>
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
         </div>
-    @endif
+    <?php endif; ?> <!-- __ENDBLOCK__ -->
 
     <div class="card">
         <div class="card-header">
@@ -49,9 +49,9 @@
                             wire:model.live="category_id"
                         >
                             <option value="">Semua Kategori</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}">{{ $category->category_name }}</option>
-                            @endforeach
+                            <!-- __BLOCK__ --><?php $__currentLoopData = $categories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $category): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                <option value="<?php echo e($category->id); ?>"><?php echo e($category->category_name); ?></option>
+                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?> <!-- __ENDBLOCK__ -->
                         </select>
                     </div>
                 </div>
@@ -116,15 +116,15 @@
                     <thead>
                         <tr>
                             <th style="width: 50px;" class="text-center">
-                                @php
+                                <?php
                                     $currentPageProductIds = $products->pluck('id')->toArray();
                                     $selectedOnCurrentPage = array_intersect($selectedProducts, $currentPageProductIds);
                                     $allCurrentPageSelected = count($selectedOnCurrentPage) == count($currentPageProductIds) && count($currentPageProductIds) > 0;
-                                @endphp
+                                ?>
                                 <input 
                                     type="checkbox" 
-                                    onclick="if(this.checked) { @this.call('selectAll') } else { @this.call('deselectAll') }"
-                                    @if($allCurrentPageSelected) checked @endif
+                                    onclick="if(this.checked) { window.Livewire.find('<?php echo e($_instance->getId()); ?>').call('selectAll') } else { window.Livewire.find('<?php echo e($_instance->getId()); ?>').call('deselectAll') }"
+                                    <?php if($allCurrentPageSelected): ?> checked <?php endif; ?>
                                 >
                             </th>
                             <th>Nama Produk</th>
@@ -135,73 +135,78 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($products as $product)
-                            @php
+                        <!-- __BLOCK__ --><?php $__empty_1 = true; $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                            <?php
                                 $isSelected = in_array($product->id, $selectedProducts);
                                 $barcodeValue = $product->product_gtin ?? $product->product_sku ?? $product->product_code ?? '';
                                 $hasValidBarcode = !empty($barcodeValue) && is_numeric($barcodeValue);
-                            @endphp
-                            <tr class="{{ $isSelected ? 'table-active' : '' }}">
+                            ?>
+                            <tr class="<?php echo e($isSelected ? 'table-active' : ''); ?>">
                                 <td class="text-center align-middle">
                                     <input 
                                         type="checkbox" 
-                                        wire:click="toggleProduct({{ $product->id }})"
-                                        @if($isSelected) checked @endif
+                                        wire:click="toggleProduct(<?php echo e($product->id); ?>)"
+                                        <?php if($isSelected): ?> checked <?php endif; ?>
                                     >
                                 </td>
                                 <td class="align-middle">
-                                    {{ $product->product_name }}
-                                    @if(!$hasValidBarcode)
+                                    <?php echo e($product->product_name); ?>
+
+                                    <!-- __BLOCK__ --><?php if(!$hasValidBarcode): ?>
                                         <br><small class="text-danger">
                                             <i class="bi bi-exclamation-triangle"></i> Tidak ada SKU/GTIN numerik
                                         </small>
-                                    @endif
+                                    <?php endif; ?> <!-- __ENDBLOCK__ -->
                                 </td>
                                 <td class="align-middle">
-                                    {{ $product->category->category_name ?? 'N/A' }}
+                                    <?php echo e($product->category->category_name ?? 'N/A'); ?>
+
                                 </td>
                                 <td class="align-middle">
-                                    {{ $product->product_sku ?? $product->product_code ?? 'N/A' }}
+                                    <?php echo e($product->product_sku ?? $product->product_code ?? 'N/A'); ?>
+
                                 </td>
                                 <td class="align-middle">
-                                    {{ $product->product_gtin ?? 'N/A' }}
+                                    <?php echo e($product->product_gtin ?? 'N/A'); ?>
+
                                 </td>
                                 <td class="align-middle">
-                                    @if($isSelected)
+                                    <!-- __BLOCK__ --><?php if($isSelected): ?>
                                         <input 
                                             type="number" 
                                             class="form-control form-control-sm" 
-                                            wire:model.live="quantities.{{ $product->id }}"
+                                            wire:model.live="quantities.<?php echo e($product->id); ?>"
                                             min="1" 
                                             max="100" 
-                                            value="{{ $quantities[$product->id] ?? 1 }}"
+                                            value="<?php echo e($quantities[$product->id] ?? 1); ?>"
                                         >
-                                    @else
+                                    <?php else: ?>
                                         <span class="text-muted">-</span>
-                                    @endif
+                                    <?php endif; ?> <!-- __ENDBLOCK__ -->
                                 </td>
                             </tr>
-                        @empty
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                             <tr>
                                 <td colspan="6" class="text-center">
                                     <span class="text-muted">Tidak ada produk ditemukan</span>
                                 </td>
                             </tr>
-                        @endforelse
+                        <?php endif; ?> <!-- __ENDBLOCK__ -->
                     </tbody>
                 </table>
             </div>
 
             <!-- Pagination -->
             <div class="mt-3">
-                {{ $products->links() }}
+                <?php echo e($products->links()); ?>
+
             </div>
 
             <!-- Action Buttons -->
             <div class="mt-3 d-flex justify-content-between align-items-center">
                 <div>
                     <span class="text-muted">
-                        <strong>{{ count($selectedProducts) }}</strong> produk dipilih
+                        <strong><?php echo e(count($selectedProducts)); ?></strong> produk dipilih
                     </span>
                 </div>
                 <div>
@@ -210,7 +215,7 @@
                         class="btn btn-primary" 
                         wire:click="generateBarcodes"
                         wire:loading.attr="disabled"
-                        @if(empty($selectedProducts)) disabled @endif
+                        <?php if(empty($selectedProducts)): ?> disabled <?php endif; ?>
                     >
                         <span wire:loading.remove wire:target="generateBarcodes">
                             <i class="bi bi-upc-scan"></i> Generate Barcodes
@@ -220,7 +225,7 @@
                             Generating...
                         </span>
                     </button>
-                    @if(!empty($barcodes))
+                    <!-- __BLOCK__ --><?php if(!empty($barcodes)): ?>
                         <button 
                             type="button" 
                             class="btn btn-secondary ml-2" 
@@ -228,17 +233,17 @@
                         >
                             <i class="bi bi-x-circle"></i> Clear
                         </button>
-                    @endif
+                    <?php endif; ?> <!-- __ENDBLOCK__ -->
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Generated Barcodes -->
-    @if(!empty($barcodes))
+    <!-- __BLOCK__ --><?php if(!empty($barcodes)): ?>
         <div class="card mt-4">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h4 class="card-title mb-0">Barcode yang Dihasilkan ({{ count($barcodes) }})</h4>
+                <h4 class="card-title mb-0">Barcode yang Dihasilkan (<?php echo e(count($barcodes)); ?>)</h4>
                 <div class="btn-group">
                     <button 
                         wire:click="downloadImage" 
@@ -267,38 +272,44 @@
             </div>
             <div class="card-body">
                 <div class="row">
-                    @foreach($barcodeData as $index => $data)
+                    <!-- __BLOCK__ --><?php $__currentLoopData = $barcodeData; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $data): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="col-lg-3 col-md-4 col-sm-6 mb-3 barcode-item-container" style="border: 1px solid #ddd;border-style: dashed;background-color: #ffffff;padding: 15px;">
                             <p class="mt-2 mb-1" style="font-size: 14px;color: #000;font-weight: bold;">
-                                {{ $data['name'] }}
+                                <?php echo e($data['name']); ?>
+
                             </p>
                             <div class="text-center">
-                                {!! $data['barcode'] !!}
+                                <?php echo $data['barcode']; ?>
+
                             </div>
                             <p class="mb-1" style="font-size: 11px;color: #000;">
-                                {{ strtoupper($data['barcode_source']) }}: {{ $data['barcode_value'] }}
+                                <?php echo e(strtoupper($data['barcode_source'])); ?>: <?php echo e($data['barcode_value']); ?>
+
                             </p>
-                            @if($data['gtin'])
+                            <!-- __BLOCK__ --><?php if($data['gtin']): ?>
                                 <p class="mb-1" style="font-size: 11px;color: #666;">
-                                    GTIN: {{ $data['gtin'] }}
+                                    GTIN: <?php echo e($data['gtin']); ?>
+
                                 </p>
-                            @endif
-                            @if($data['sku'])
+                            <?php endif; ?> <!-- __ENDBLOCK__ -->
+                            <!-- __BLOCK__ --><?php if($data['sku']): ?>
                                 <p class="mb-1" style="font-size: 11px;color: #666;">
-                                    SKU: {{ $data['sku'] }}
+                                    SKU: <?php echo e($data['sku']); ?>
+
                                 </p>
-                            @endif
+                            <?php endif; ?> <!-- __ENDBLOCK__ -->
                             <p style="font-size: 13px;color: #000;font-weight: bold;">
-                                Price: {{ format_currency($data['price']) }}
+                                Price: <?php echo e(format_currency($data['price'])); ?>
+
                             </p>
                         </div>
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?> <!-- __ENDBLOCK__ -->
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?> <!-- __ENDBLOCK__ -->
 
-    @push('page_scripts')
+    <?php $__env->startPush('page_scripts'); ?>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" onload="console.log('html2canvas loaded successfully from CDN')" onerror="console.error('Failed to load html2canvas from CDN')"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" onload="console.log('JSZip library loaded successfully')" onerror="console.error('Failed to load JSZip library')"></script>
     
@@ -780,5 +791,6 @@
             }
         }
     </script>
-    @endpush
+    <?php $__env->stopPush(); ?>
 </div>
+<?php /**PATH D:\project warnet\Nameless\resources\views/livewire/barcode/product-table.blade.php ENDPATH**/ ?>

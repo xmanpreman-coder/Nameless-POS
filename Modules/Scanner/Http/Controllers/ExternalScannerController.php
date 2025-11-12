@@ -35,16 +35,22 @@ class ExternalScannerController extends Controller
         }
 
         // Search for product
-        $product = $this->searchProduct($barcode);
+        $searchResult = $this->searchProductWithDetails($barcode);
 
-        if ($product) {
+        if ($searchResult['product']) {
+            $product = $searchResult['product'];
+            
             // Log successful scan
             $this->logScan($barcode, $product->id, true);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Product found',
+                'message' => $searchResult['reconstructed'] ? 
+                    'Product found (barcode reconstructed: ' . $searchResult['actual_barcode'] . ')' : 
+                    'Product found',
                 'barcode' => $barcode,
+                'actual_barcode' => $searchResult['actual_barcode'],
+                'reconstructed' => $searchResult['reconstructed'],
                 'product' => [
                     'id' => $product->id,
                     'name' => $product->product_name,
@@ -174,14 +180,103 @@ class ExternalScannerController extends Controller
     }
 
     /**
-     * Search for product by barcode
+     * Search for product by barcode with detailed information
+     */
+    private function searchProductWithDetails($barcode)
+    {
+        // First try exact match
+        $product = Product::where('product_barcode_symbology', $barcode)
+                         ->orWhere('product_code', $barcode)
+                         ->orWhere('product_gtin', $barcode)
+                         ->first();
+
+        if ($product) {
+            return [
+                'product' => $product,
+                'actual_barcode' => $barcode,
+                'reconstructed' => false
+            ];
+        }
+
+        // If not found and barcode looks like it might be missing first digit
+        if ($this->mightBeMissingFirstDigit($barcode)) {
+            $result = $this->searchWithPossibleMissingDigitDetails($barcode);
+            if ($result) {
+                return $result;
+            }
+        }
+
+        return [
+            'product' => null,
+            'actual_barcode' => $barcode,
+            'reconstructed' => false
+        ];
+    }
+
+    /**
+     * Search for product by barcode (legacy method for backward compatibility)
      */
     private function searchProduct($barcode)
     {
-        return Product::where('product_barcode_symbology', $barcode)
-                     ->orWhere('product_code', $barcode)
-                     ->orWhere('product_gtin', $barcode)
-                     ->first();
+        $result = $this->searchProductWithDetails($barcode);
+        return $result['product'];
+    }
+
+    /**
+     * Check if barcode might be missing first digit
+     */
+    private function mightBeMissingFirstDigit($barcode)
+    {
+        // Check for common patterns where first digit might be missing
+        // EAN-13 becomes 12 digits, EAN-8 becomes 7 digits, UPC-A becomes 11 digits
+        $length = strlen($barcode);
+        
+        return in_array($length, [7, 11, 12]) && is_numeric($barcode);
+    }
+
+    /**
+     * Search for product by trying common first digits with details
+     */
+    private function searchWithPossibleMissingDigitDetails($barcode)
+    {
+        // Common first digits for Indonesian products (8 is most common for EAN-13)
+        $commonFirstDigits = ['8', '9', '0', '1', '2', '3', '4', '5', '6', '7'];
+        
+        foreach ($commonFirstDigits as $digit) {
+            $fullBarcode = $digit . $barcode;
+            
+            $product = Product::where('product_barcode_symbology', $fullBarcode)
+                             ->orWhere('product_code', $fullBarcode)
+                             ->orWhere('product_gtin', $fullBarcode)
+                             ->first();
+            
+            if ($product) {
+                // Log this for debugging
+                \Log::info("Scanner: Found product with reconstructed barcode", [
+                    'original_scan' => $barcode,
+                    'reconstructed' => $fullBarcode,
+                    'product_id' => $product->id,
+                    'product_name' => $product->product_name
+                ]);
+                
+                return [
+                    'product' => $product,
+                    'actual_barcode' => $fullBarcode,
+                    'reconstructed' => true
+                ];
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Search for product by trying common first digits (legacy method)
+     */
+    private function searchWithPossibleMissingDigit($barcode)
+    {
+        $result = $this->searchWithPossibleMissingDigitDetails($barcode);
+        return $result ? $result['product'] : null;
     }
 
     /**

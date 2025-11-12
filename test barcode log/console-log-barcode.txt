@@ -1,0 +1,256 @@
+External scanner ready - HTTP endpoints active
+external-scanner.js:20 External scanner initialized with endpoint: http://localhost:8000/api/scanner/scan
+external-scanner.js:122 External scanner: Buffer updated: 9
+external-scanner.js:122 External scanner: Buffer updated: 99
+external-scanner.js:122 External scanner: Buffer updated: 991
+external-scanner.js:122 External scanner: Buffer updated: 9917
+external-scanner.js:122 External scanner: Buffer updated: 99171
+external-scanner.js:122 External scanner: Buffer updated: 991716
+external-scanner.js:139 External scanner: Processing buffer from Enter: 991716
+external-scanner.js:169 External scanner processBarcode: Object
+external-scanner.js:186 External scanner after trim: 991716 Length: 6
+external-scanner.js:197 External scanner: Making request to: http://localhost:8000/api/scanner/scan
+external-scanner.js:245 External scanner: API attempt 1/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:245 External scanner: API attempt 2/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:245 External scanner: API attempt 3/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:220 External scanner error: Error: HTTP error! status: 404
+    at ExternalScannerHandler.apiRequestWithRetry (external-scanner.js:269:27)
+    at async ExternalScannerHandler.processBarcode (external-scanner.js:200:28)
+processBarcode @ external-scanner.js:220Understand this error
+external-scanner.js:287 External scanner: Trying Livewire fallback for: 991716
+external-scanner.js:122 External scanner: Buffer updated: 9
+external-scanner.js:122 External scanner: Buffer updated: 99
+external-scanner.js:122 External scanner: Buffer updated: 998
+external-scanner.js:122 External scanner: Buffer updated: 9981
+external-scanner.js:122 External scanner: Buffer updated: 99817
+external-scanner.js:122 External scanner: Buffer updated: 998171
+external-scanner.js:122 External scanner: Buffer updated: 9981716
+external-scanner.js:129 External scanner: Processing buffer from timeout: 9981716
+external-scanner.js:169 External scanner processBarcode: Object
+external-scanner.js:186 External scanner after trim: 9981716 Length: 7
+external-scanner.js:197 External scanner: Making request to: http://localhost:8000/api/scanner/scan
+external-scanner.js:245 External scanner: API attempt 1/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:245 External scanner: API attempt 2/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:245 External scanner: API attempt 3/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:220 External scanner error: Error: HTTP error! status: 404
+    at ExternalScannerHandler.apiRequestWithRetry (external-scanner.js:269:27)
+    at async ExternalScannerHandler.processBarcode (external-scanner.js:200:28)
+processBarcode @ external-scanner.js:220Understand this error
+external-scanner.js:287 External scanner: Trying Livewire fallback for: 9981716
+external-scanner.js:122 External scanner: Buffer updated: 9
+external-scanner.js:122 External scanner: Buffer updated: 99
+external-scanner.js:122 External scanner: Buffer updated: 994
+external-scanner.js:122 External scanner: Buffer updated: 9943
+external-scanner.js:122 External scanner: Buffer updated: 99435
+external-scanner.js:122 External scanner: Buffer updated: 994354
+external-scanner.js:122 External scanner: Buffer updated: 9943541
+external-scanner.js:122 External scanner: Buffer updated: 99435410
+external-scanner.js:122 External scanner: Buffer updated: 994354100
+external-scanner.js:122 External scanner: Buffer updated: 9943541003
+external-scanner.js:122 External scanner: Buffer updated: 99435410039
+external-scanner.js:139 External scanner: Processing buffer from Enter: 99435410039
+external-scanner.js:169 External scanner processBarcode: Object
+external-scanner.js:186 External scanner after trim: 99435410039 Length: 11
+external-scanner.js:197 External scanner: Making request to: http://localhost:8000/api/scanner/scan
+external-scanner.js:245 External scanner: API attempt 1/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:245 External scanner: API attempt 2/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:245 External scanner: API attempt 3/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:220 External scanner error: Error: HTTP error! status: 404
+    at ExternalScannerHandler.apiRequestWithRetry (external-scanner.js:269:27)
+    at async ExternalScannerHandler.processBarcode (external-scanner.js:200:28)
+processBarcode @ external-scanner.js:220Understand this error
+external-scanner.js:287 External scanner: Trying Livewire fallback for: 99435410039
+external-scanner.js:122 External scanner: Buffer updated: 9
+external-scanner.js:122 External scanner: Buffer updated: 99
+external-scanner.js:122 External scanner: Buffer updated: 994
+external-scanner.js:122 External scanner: Buffer updated: 9943
+external-scanner.js:122 External scanner: Buffer updated: 99435
+external-scanner.js:122 External scanner: Buffer updated: 994354
+external-scanner.js:122 External scanner: Buffer updated: 9943541
+external-scanner.js:122 External scanner: Buffer updated: 99435410
+external-scanner.js:122 External scanner: Buffer updated: 994354100
+external-scanner.js:122 External scanner: Buffer updated: 9943541009
+external-scanner.js:122 External scanner: Buffer updated: 99435410099
+external-scanner.js:129 External scanner: Processing buffer from timeout: 99435410099
+external-scanner.js:169 External scanner processBarcode: Object
+external-scanner.js:186 External scanner after trim: 99435410099 Length: 11
+external-scanner.js:197 External scanner: Making request to: http://localhost:8000/api/scanner/scan
+external-scanner.js:245 External scanner: API attempt 1/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:245 External scanner: API attempt 2/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:245 External scanner: API attempt 3/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:220 External scanner error: Error: HTTP error! status: 404
+    at ExternalScannerHandler.apiRequestWithRetry (external-scanner.js:269:27)
+    at async ExternalScannerHandler.processBarcode (external-scanner.js:200:28)
+processBarcode @ external-scanner.js:220Understand this error
+external-scanner.js:287 External scanner: Trying Livewire fallback for: 99435410099
+external-scanner.js:122 External scanner: Buffer updated: 9
+external-scanner.js:122 External scanner: Buffer updated: 99
+external-scanner.js:122 External scanner: Buffer updated: 998
+external-scanner.js:122 External scanner: Buffer updated: 9981
+external-scanner.js:122 External scanner: Buffer updated: 99812
+external-scanner.js:122 External scanner: Buffer updated: 998127
+external-scanner.js:122 External scanner: Buffer updated: 9981279
+external-scanner.js:122 External scanner: Buffer updated: 99812791
+external-scanner.js:122 External scanner: Buffer updated: 998127913
+external-scanner.js:122 External scanner: Buffer updated: 9981279136
+external-scanner.js:122 External scanner: Buffer updated: 99812791363
+external-scanner.js:139 External scanner: Processing buffer from Enter: 99812791363
+external-scanner.js:169 External scanner processBarcode: Object
+external-scanner.js:186 External scanner after trim: 99812791363 Length: 11
+external-scanner.js:197 External scanner: Making request to: http://localhost:8000/api/scanner/scan
+external-scanner.js:245 External scanner: API attempt 1/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:245 External scanner: API attempt 2/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:245 External scanner: API attempt 3/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:220 External scanner error: Error: HTTP error! status: 404
+    at ExternalScannerHandler.apiRequestWithRetry (external-scanner.js:269:27)
+    at async ExternalScannerHandler.processBarcode (external-scanner.js:200:28)
+processBarcode @ external-scanner.js:220Understand this error
+external-scanner.js:287 External scanner: Trying Livewire fallback for: 99812791363
+external-scanner.js:122 External scanner: Buffer updated: 9
+external-scanner.js:122 External scanner: Buffer updated: 99
+external-scanner.js:122 External scanner: Buffer updated: 998
+external-scanner.js:122 External scanner: Buffer updated: 9981
+external-scanner.js:122 External scanner: Buffer updated: 99812
+external-scanner.js:122 External scanner: Buffer updated: 998127
+external-scanner.js:122 External scanner: Buffer updated: 9981279
+external-scanner.js:122 External scanner: Buffer updated: 99812791
+external-scanner.js:122 External scanner: Buffer updated: 998127912
+external-scanner.js:122 External scanner: Buffer updated: 9981279123
+external-scanner.js:122 External scanner: Buffer updated: 99812791236
+external-scanner.js:122 External scanner: Buffer updated: 998127912363
+external-scanner.js:139 External scanner: Processing buffer from Enter: 998127912363
+external-scanner.js:169 External scanner processBarcode: Object
+external-scanner.js:186 External scanner after trim: 998127912363 Length: 12
+external-scanner.js:197 External scanner: Making request to: http://localhost:8000/api/scanner/scan
+external-scanner.js:245 External scanner: API attempt 1/3
+external-scanner.js:260 External scanner: Response status: 200 OK
+external-scanner.js:264 External scanner: Response data: Object
+external-scanner.js:341 External scan successful: Object
+external-scanner.js:122 External scanner: Buffer updated: 9
+external-scanner.js:122 External scanner: Buffer updated: 99
+external-scanner.js:122 External scanner: Buffer updated: 994
+external-scanner.js:122 External scanner: Buffer updated: 9943
+external-scanner.js:122 External scanner: Buffer updated: 99435
+external-scanner.js:122 External scanner: Buffer updated: 994354
+external-scanner.js:122 External scanner: Buffer updated: 9943541
+external-scanner.js:122 External scanner: Buffer updated: 99435410
+external-scanner.js:122 External scanner: Buffer updated: 994354100
+external-scanner.js:122 External scanner: Buffer updated: 9943541003
+external-scanner.js:122 External scanner: Buffer updated: 99435410039
+external-scanner.js:122 External scanner: Buffer updated: 994354100399
+external-scanner.js:139 External scanner: Processing buffer from Enter: 994354100399
+external-scanner.js:169 External scanner processBarcode: Object
+external-scanner.js:186 External scanner after trim: 994354100399 Length: 12
+external-scanner.js:197 External scanner: Making request to: http://localhost:8000/api/scanner/scan
+external-scanner.js:245 External scanner: API attempt 1/3
+external-scanner.js:260 External scanner: Response status: 200 OK
+external-scanner.js:264 External scanner: Response data: Object
+external-scanner.js:341 External scan successful: Object
+external-scanner.js:122 External scanner: Buffer updated: 9
+external-scanner.js:122 External scanner: Buffer updated: 99
+external-scanner.js:122 External scanner: Buffer updated: 997
+external-scanner.js:122 External scanner: Buffer updated: 9972
+external-scanner.js:122 External scanner: Buffer updated: 99723
+external-scanner.js:122 External scanner: Buffer updated: 997234
+external-scanner.js:122 External scanner: Buffer updated: 9972347
+external-scanner.js:122 External scanner: Buffer updated: 99723470
+external-scanner.js:122 External scanner: Buffer updated: 997234702
+external-scanner.js:122 External scanner: Buffer updated: 9972347020
+external-scanner.js:122 External scanner: Buffer updated: 99723470208
+external-scanner.js:139 External scanner: Processing buffer from Enter: 99723470208
+external-scanner.js:169 External scanner processBarcode: Object
+external-scanner.js:186 External scanner after trim: 99723470208 Length: 11
+external-scanner.js:197 External scanner: Making request to: http://localhost:8000/api/scanner/scan
+external-scanner.js:245 External scanner: API attempt 1/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:245 External scanner: API attempt 2/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:245 External scanner: API attempt 3/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:220 External scanner error: Error: HTTP error! status: 404
+    at ExternalScannerHandler.apiRequestWithRetry (external-scanner.js:269:27)
+    at async ExternalScannerHandler.processBarcode (external-scanner.js:200:28)
+processBarcode @ external-scanner.js:220Understand this error
+external-scanner.js:287 External scanner: Trying Livewire fallback for: 99723470208
+external-scanner.js:122 External scanner: Buffer updated: 9
+external-scanner.js:122 External scanner: Buffer updated: 99
+external-scanner.js:122 External scanner: Buffer updated: 997
+external-scanner.js:122 External scanner: Buffer updated: 9972
+external-scanner.js:122 External scanner: Buffer updated: 99723
+external-scanner.js:122 External scanner: Buffer updated: 997234
+external-scanner.js:122 External scanner: Buffer updated: 9972347
+external-scanner.js:122 External scanner: Buffer updated: 99723479
+external-scanner.js:122 External scanner: Buffer updated: 997234790
+external-scanner.js:122 External scanner: Buffer updated: 9972347900
+external-scanner.js:122 External scanner: Buffer updated: 99723479008
+external-scanner.js:139 External scanner: Processing buffer from Enter: 99723479008
+external-scanner.js:169 External scanner processBarcode: Object
+external-scanner.js:186 External scanner after trim: 99723479008 Length: 11
+external-scanner.js:197 External scanner: Making request to: http://localhost:8000/api/scanner/scan
+external-scanner.js:245 External scanner: API attempt 1/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:245 External scanner: API attempt 2/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:245 External scanner: API attempt 3/3
+:8000/api/scanner/scan:1  Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+external-scanner.js:260 External scanner: Response status: 404 Not Found
+external-scanner.js:220 External scanner error: Error: HTTP error! status: 404
+    at ExternalScannerHandler.apiRequestWithRetry (external-scanner.js:269:27)
+    at async ExternalScannerHandler.processBarcode (external-scanner.js:200:28)
+processBarcode @ external-scanner.js:220Understand this error
+external-scanner.js:287 External scanner: Trying Livewire fallback for: 99723479008
+external-scanner.js:122 External scanner: Buffer updated: 9
+external-scanner.js:122 External scanner: Buffer updated: 99
+external-scanner.js:122 External scanner: Buffer updated: 997
+external-scanner.js:122 External scanner: Buffer updated: 9972
+external-scanner.js:122 External scanner: Buffer updated: 99723
+external-scanner.js:122 External scanner: Buffer updated: 997234
+external-scanner.js:122 External scanner: Buffer updated: 9972347
+external-scanner.js:122 External scanner: Buffer updated: 99723479
+external-scanner.js:122 External scanner: Buffer updated: 997234790
+external-scanner.js:122 External scanner: Buffer updated: 9972347902
+external-scanner.js:122 External scanner: Buffer updated: 99723479020
+external-scanner.js:122 External scanner: Buffer updated: 997234790208
+external-scanner.js:139 External scanner: Processing buffer from Enter: 997234790208
+external-scanner.js:169 External scanner processBarcode: Object
+external-scanner.js:186 External scanner after trim: 997234790208 Length: 12
+external-scanner.js:197 External scanner: Making request to: http://localhost:8000/api/scanner/scan
+external-scanner.js:245 External scanner: API attempt 1/3
+external-scanner.js:260 External scanner: Response status: 200 OK
+external-scanner.js:264 External scanner: Response data: Object
+external-scanner.js:341 External scan successful: Object

@@ -245,7 +245,13 @@ class BarcodeScanner {
                     halfSample: true
                 },
                 numOfWorkers: 2,
-                frequency: 10
+                frequency: 10,
+                debug: {
+                    drawBoundingBox: false,
+                    showFrequency: false,
+                    drawScanline: false,
+                    showPattern: false
+                }
             }, (err) => {
                 if (err) {
                     console.error('QuaggaJS initialization error:', err);
@@ -317,21 +323,26 @@ class BarcodeScanner {
     async searchProduct(barcode) {
         try {
             this.showStatus('Searching product...', 'info');
+            console.log('Quagga scanner: Searching for barcode:', barcode);
             
             const response = await fetch('{{ route("scanner.search-product") }}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
                 },
                 body: JSON.stringify({ barcode: barcode })
             });
 
             const data = await response.json();
+            console.log('Quagga scanner: Response data:', data);
 
             if (data.success) {
-                this.showProductDetails(data.product);
-                this.showStatus('Product found!', 'success');
+                this.showProductDetails(data.product, data);
+                const message = data.reconstructed ? 
+                    `Product found (barcode reconstructed: ${data.actual_barcode})` : 
+                    'Product found!';
+                this.showStatus(message, 'success');
             } else {
                 this.showStatus(data.message, 'warning');
             }
@@ -342,13 +353,19 @@ class BarcodeScanner {
         }
     }
 
-    showProductDetails(product) {
+    showProductDetails(product, scanData = null) {
         document.getElementById('product-result').style.display = 'none';
         document.getElementById('product-details').style.display = 'block';
 
         document.getElementById('product-name').textContent = product.name;
         document.getElementById('product-code').textContent = product.code;
-        document.getElementById('product-barcode').textContent = product.barcode || 'N/A';
+        
+        // Show actual barcode if reconstructed
+        const barcodeText = scanData && scanData.reconstructed ? 
+            `${product.barcode || 'N/A'} (reconstructed from ${scanData.barcode})` : 
+            product.barcode || 'N/A';
+        document.getElementById('product-barcode').textContent = barcodeText;
+        
         document.getElementById('product-price').textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(product.price);
         document.getElementById('product-stock').textContent = product.stock;
 

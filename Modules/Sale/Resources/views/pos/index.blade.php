@@ -33,6 +33,10 @@
 @endsection
 
 @push('page_scripts')
+    <script>
+        // Pass scanner settings to JavaScript
+        window.scannerSettings = @json($scanner_settings);
+    </script>
     <!-- QuaggaJS Library for Barcode Scanning -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
     <!-- External Scanner Handler -->

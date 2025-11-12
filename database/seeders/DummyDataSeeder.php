@@ -66,9 +66,20 @@ class DummyDataSeeder extends Seeder
 
         // Create Units
         $this->command->info('Creating units...');
-        $units = ['Pcs', 'Box', 'Kg', 'Liter', 'Pack', 'Set', 'Dozen'];
-        foreach ($units as $unitName) {
-            Unit::firstOrCreate(['name' => $unitName]);
+        $units = [
+            ['name' => 'Pcs', 'short_name' => 'pcs'],
+            ['name' => 'Box', 'short_name' => 'box'],
+            ['name' => 'Kg', 'short_name' => 'kg'],
+            ['name' => 'Liter', 'short_name' => 'lt'],
+            ['name' => 'Pack', 'short_name' => 'pack'],
+            ['name' => 'Set', 'short_name' => 'set'],
+            ['name' => 'Dozen', 'short_name' => 'dz'],
+        ];
+        foreach ($units as $unit) {
+            Unit::firstOrCreate(
+                ['name' => $unit['name']],
+                ['short_name' => $unit['short_name']]
+            );
         }
 
         // Create Products

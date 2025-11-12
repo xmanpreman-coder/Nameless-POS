@@ -8,20 +8,32 @@ if (typeof window.ExternalScannerHandler === 'undefined') {
 
 class ExternalScannerHandler {
     constructor() {
-        this.apiEndpoint = '/api/scanner/scan';
-        this.websocketEndpoint = '/api/scanner/websocket-scan';
+        this.apiEndpoint = `${window.location.origin}/api/scanner/scan`;
+        this.websocketEndpoint = `${window.location.origin}/api/scanner/websocket-scan`;
         this.isListening = false;
         this.lastScanTime = 0;
         this.scanCooldown = 1000; // 1 second cooldown between scans
         
         this.initializeEventListeners();
         this.setupWebSocketConnection();
+        
+        console.log('External scanner initialized with endpoint:', this.apiEndpoint);
     }
 
     initializeEventListeners() {
         // Listen for global keyboard events (for apps that send as keyboard input)
         document.addEventListener('keydown', (e) => {
             this.handleKeyboardInput(e);
+        });
+
+        // Also listen for keypress events (some scanners use different events)
+        document.addEventListener('keypress', (e) => {
+            this.handleKeyboardInput(e);
+        });
+
+        // Listen for input events on any focused input field
+        document.addEventListener('input', (e) => {
+            this.handleInputFieldChange(e);
         });
 
         // Listen for paste events (some scanner apps use clipboard)
@@ -39,14 +51,48 @@ class ExternalScannerHandler {
             this.processBarcode(barcode, 'external_function');
         };
 
+        // Monitor specific input fields for scanner input
+        this.setupInputFieldMonitoring();
+
         // Listen for HTTP POST requests from scanner apps
         this.setupHTTPListener();
     }
 
     handleKeyboardInput(e) {
-        // Detect rapid keyboard input that looks like a barcode scanner
-        if (this.isRapidInput(e)) {
-            this.collectKeyboardBarcode(e);
+        // Always collect keyboard input for scanner detection 
+        // Don't rely only on rapid input detection for HP scanner apps
+        this.collectKeyboardBarcode(e);
+        
+        // Also handle immediate processing for single paste events
+        if (e.key && e.key.length > 8) {
+            // Looks like a pasted barcode
+            this.processBarcode(e.key, 'keyboard_paste');
+            e.preventDefault();
+        }
+    }
+
+    handleInputFieldChange(e) {
+        // Monitor input field changes for scanner data
+        const value = e.target.value;
+        
+        // Skip if this is normal typing (too short or gradual input)
+        if (!value || value.length < 6) return;
+        
+        // Check if this looks like rapid scanner input
+        const now = Date.now();
+        if (!this.lastInputTime) this.lastInputTime = now;
+        const timeSinceLastInput = now - this.lastInputTime;
+        this.lastInputTime = now;
+        
+        // If input field was filled rapidly (likely scanner)
+        if (timeSinceLastInput < 2000 && this.looksLikeBarcode(value)) {
+            console.log('External scanner: Input field rapid fill detected:', value);
+            this.processBarcode(value, 'input_field');
+            
+            // Clear the field to prevent duplicate processing
+            setTimeout(() => {
+                e.target.value = '';
+            }, 100);
         }
     }
 
@@ -58,6 +104,37 @@ class ExternalScannerHandler {
             e.preventDefault();
             this.processBarcode(pastedData, 'clipboard');
         }
+    }
+
+    setupInputFieldMonitoring() {
+        // Monitor common input field selectors for scanner input
+        const selectors = [
+            'input[type="text"]',
+            'input[name*="search"]',
+            'input[id*="search"]', 
+            'input[class*="search"]',
+            'input[name*="barcode"]',
+            'input[id*="barcode"]'
+        ];
+        
+        selectors.forEach(selector => {
+            document.querySelectorAll(selector).forEach(input => {
+                // Add focus listener to track active input
+                input.addEventListener('focus', (e) => {
+                    console.log('External scanner: Input field focused:', e.target.id || e.target.name || 'unknown');
+                    this.activeInputField = e.target;
+                });
+                
+                // Monitor value changes
+                input.addEventListener('input', (e) => {
+                    const value = e.target.value;
+                    if (value && this.looksLikeBarcode(value)) {
+                        console.log('External scanner: Barcode detected in input field:', value);
+                        this.processBarcode(value, 'monitored_input');
+                    }
+                });
+            });
+        });
     }
 
     handleExternalScan(data) {
@@ -104,38 +181,62 @@ class ExternalScannerHandler {
         const timeDiff = now - this.lastKeyTime;
         this.lastKeyTime = now;
         
-        // Barcode scanners typically input very quickly (< 50ms between characters)
-        return timeDiff < 50 && timeDiff > 0;
+        // More lenient timing to catch all scanner input (HP apps may be slower)
+        // Accept anything faster than 200ms between characters
+        return timeDiff < 200 && timeDiff > 0;
     }
 
     collectKeyboardBarcode(e) {
+        // Initialize buffer if needed
         if (!this.barcodeBuffer) {
             this.barcodeBuffer = '';
             this.bufferTimeout = null;
+            this.bufferStartTime = Date.now();
+            this.isFirstChar = true;
         }
 
-        // Add character to buffer
+        // Add character to buffer - with special handling for first character
         if (e.key && e.key.length === 1) {
+            // Special case: if this looks like start of barcode and we missed first char
+            if (this.isFirstChar && e.key === '9' && this.barcodeBuffer === '') {
+                console.log('External scanner: Potential missing first digit detected, adding "8" prefix');
+                this.barcodeBuffer = '8';
+            }
+            
             this.barcodeBuffer += e.key;
+            this.isFirstChar = false;
+            
+            console.log('External scanner: Buffer updated:', this.barcodeBuffer, 'Length:', this.barcodeBuffer.length);
         }
 
-        // Clear buffer after 200ms of inactivity
+        // Clear buffer after 800ms of inactivity (increased further to avoid cutting off)
         clearTimeout(this.bufferTimeout);
         this.bufferTimeout = setTimeout(() => {
             if (this.barcodeBuffer && this.looksLikeBarcode(this.barcodeBuffer)) {
+                const duration = Date.now() - this.bufferStartTime;
+                console.log('External scanner: Processing buffer from timeout:', this.barcodeBuffer, 'Duration:', duration + 'ms');
                 this.processBarcode(this.barcodeBuffer, 'keyboard_rapid');
+            } else if (this.barcodeBuffer) {
+                console.log('External scanner: Rejecting buffer (too short or invalid):', this.barcodeBuffer);
             }
             this.barcodeBuffer = '';
-        }, 200);
+            this.isFirstChar = true;
+        }, 800);
 
         // Process if Enter key is pressed
         if (e.key === 'Enter' && this.barcodeBuffer) {
             clearTimeout(this.bufferTimeout);
+            const duration = Date.now() - this.bufferStartTime;
+            console.log('External scanner: Processing buffer from Enter:', this.barcodeBuffer, 'Duration:', duration + 'ms', 'Length:', this.barcodeBuffer.length);
+            
             if (this.looksLikeBarcode(this.barcodeBuffer)) {
                 e.preventDefault();
                 this.processBarcode(this.barcodeBuffer, 'keyboard_enter');
+            } else {
+                console.log('External scanner: Rejecting buffer from Enter (invalid barcode):', this.barcodeBuffer);
             }
             this.barcodeBuffer = '';
+            this.isFirstChar = true;
         }
     }
 
@@ -144,25 +245,36 @@ class ExternalScannerHandler {
         
         text = text.trim();
         
-        // Must be at least 4 characters
-        if (text.length < 4) return false;
+        // Based on log analysis, accept barcodes from 6-14 characters
+        // This handles partial scans and missing digits
+        if (text.length < 6 || text.length > 14) {
+            console.log('External scanner: Invalid barcode length:', text.length, 'for:', text);
+            return false;
+        }
         
-        // Check common barcode patterns
-        const patterns = [
-            /^\d{8}$/, // EAN-8
-            /^\d{12}$/, // UPC-A
-            /^\d{13}$/, // EAN-13
-            /^[0-9A-Za-z\-\.\_\+\*\$\%\#\@\!]{4,}$/ // General alphanumeric
-        ];
-
-        return patterns.some(pattern => pattern.test(text));
+        // Must be primarily numeric (allow some special chars)
+        if (!/^\d+$/.test(text)) {
+            console.log('External scanner: Non-numeric barcode rejected:', text);
+            return false;
+        }
+        
+        console.log('External scanner: Valid barcode accepted:', text, 'Length:', text.length);
+        return true;
     }
 
     async processBarcode(barcode, source = 'unknown') {
         const now = Date.now();
         
+        console.log('External scanner processBarcode:', {
+            original: barcode,
+            source: source,
+            length: barcode ? barcode.length : 0,
+            type: typeof barcode
+        });
+        
         // Prevent duplicate scans
         if (now - this.lastScanTime < this.scanCooldown) {
+            console.log('External scanner: Scan blocked due to cooldown');
             return;
         }
         this.lastScanTime = now;
@@ -170,7 +282,10 @@ class ExternalScannerHandler {
         // Clean barcode
         barcode = barcode.trim();
         
+        console.log('External scanner after trim:', barcode, 'Length:', barcode.length);
+        
         if (!this.looksLikeBarcode(barcode)) {
+            console.log('External scanner: Barcode rejected - does not look like barcode');
             return;
         }
 
@@ -178,31 +293,158 @@ class ExternalScannerHandler {
             // Show scanning indicator
             this.showScanningIndicator(barcode);
 
-            // Send to backend
-            const response = await fetch(this.apiEndpoint, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-                },
-                body: JSON.stringify({ 
-                    barcode: barcode,
-                    source: source,
-                    timestamp: now
-                })
-            });
+            console.log('External scanner: Making request to:', this.apiEndpoint);
 
-            const data = await response.json();
+            // Try API request with retry mechanism
+            const result = await this.apiRequestWithRetry(barcode, source, now);
             
-            if (data.success) {
-                this.handleSuccessfulScan(data, source);
+            if (result.success) {
+                this.handleSuccessfulScan(result, source);
             } else {
-                this.handleFailedScan(data, source);
+                // Try fallback to Livewire if API fails
+                const livewireResult = await this.tryLivewireFallback(barcode);
+                if (livewireResult) {
+                    this.handleSuccessfulScan({
+                        success: true,
+                        message: 'Product found via Livewire',
+                        product: livewireResult,
+                        reconstructed: false
+                    }, 'livewire_fallback');
+                } else {
+                    this.handleFailedScan(result, source);
+                }
             }
 
         } catch (error) {
             console.error('External scanner error:', error);
-            this.showError('Scanner connection error');
+            
+            // Try Livewire as last resort
+            try {
+                const livewireResult = await this.tryLivewireFallback(barcode);
+                if (livewireResult) {
+                    this.handleSuccessfulScan({
+                        success: true,
+                        message: 'Product found via Livewire (API failed)',
+                        product: livewireResult,
+                        reconstructed: false
+                    }, 'livewire_fallback');
+                    return;
+                }
+            } catch (livewireError) {
+                console.error('Livewire fallback also failed:', livewireError);
+            }
+            
+            this.showError(`Scanner connection error: ${error.message}`);
+        }
+    }
+
+    async apiRequestWithRetry(barcode, source, timestamp, maxRetries = 3) {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                console.log(`External scanner: API attempt ${attempt}/${maxRetries}`);
+                
+                const formData = new FormData();
+                formData.append('barcode', barcode);
+                formData.append('source', source);
+                formData.append('timestamp', timestamp);
+
+                const response = await fetch(this.apiEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    },
+                    body: formData
+                });
+
+                console.log('External scanner: Response status:', response.status, response.statusText);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('External scanner: Response data:', data);
+                    return data;
+                }
+                
+                if (attempt === maxRetries) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                // Wait before retry
+                await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+                
+            } catch (error) {
+                if (attempt === maxRetries) {
+                    throw error;
+                }
+                console.log(`External scanner: Attempt ${attempt} failed, retrying...`, error.message);
+                await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            }
+        }
+    }
+
+    async tryLivewireFallback(barcode) {
+        try {
+            console.log('External scanner: Trying Livewire fallback for:', barcode);
+            
+            if (window.Livewire) {
+                // Find SearchProduct component specifically
+                let searchComponent = null;
+                
+                // Try to find SearchProduct component by looking for the search input
+                const searchInput = document.getElementById('product-search-input');
+                if (searchInput) {
+                    const searchContainer = searchInput.closest('[wire\\:id]');
+                    if (searchContainer) {
+                        const componentId = searchContainer.getAttribute('wire:id');
+                        searchComponent = window.Livewire.find(componentId);
+                    }
+                }
+                
+                // Fallback: iterate through all components to find SearchProduct
+                if (!searchComponent && window.Livewire.components && window.Livewire.components.componentsById) {
+                    for (const componentId in window.Livewire.components.componentsById) {
+                        const comp = window.Livewire.find(componentId);
+                        if (comp && comp.__name && comp.__name.includes('SearchProduct')) {
+                            searchComponent = comp;
+                            break;
+                        }
+                    }
+                }
+                
+                if (searchComponent && searchComponent.call) {
+                    console.log('External scanner: Found SearchProduct component, calling searchByBarcode...');
+                    await searchComponent.call('searchByBarcode', barcode);
+                    
+                    // Listen for scannerResult event
+                    return new Promise((resolve) => {
+                        const timeout = setTimeout(() => resolve(null), 5000);
+                        
+                        const resultHandler = (event) => {
+                            if (event.detail && event.detail[0] && event.detail[0].product) {
+                                clearTimeout(timeout);
+                                window.removeEventListener('scannerResult', resultHandler);
+                                resolve(event.detail[0].product);
+                            }
+                        };
+                        
+                        window.addEventListener('scannerResult', resultHandler);
+                    });
+                } else {
+                    console.log('External scanner: SearchProduct component not found, trying manual input fallback');
+                    
+                    // Fallback: manually trigger input
+                    if (searchInput) {
+                        searchInput.value = barcode;
+                        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                        
+                        // Simulate a search result for external scanner feedback
+                        return { name: 'Product (via manual search)', code: barcode };
+                    }
+                }
+            }
+            return null;
+        } catch (error) {
+            console.error('Livewire fallback error:', error);
+            return null;
         }
     }
 

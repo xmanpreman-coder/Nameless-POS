@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
-use Modules\Scanner\Http\Controllers\ExternalScannerController;
+use Modules\Scanner\Http\Controllers\ScannerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,21 +17,9 @@ use Modules\Scanner\Http\Controllers\ExternalScannerController;
 // External Scanner API Routes (for Barcode to PC, etc.)
 Route::prefix('scanner')->name('scanner.external.')->group(function() {
     // Main barcode receiving endpoint
-    Route::post('/scan', [ExternalScannerController::class, 'receiveBarcode'])->name('receive');
-    
-    // WebSocket scanning
-    Route::post('/websocket-scan', [ExternalScannerController::class, 'websocketScan'])->name('websocket');
-    
-    // Batch scanning
-    Route::post('/batch-scan', [ExternalScannerController::class, 'receiveBatch'])->name('batch');
-    
-    // Configuration endpoint
-    Route::get('/config', [ExternalScannerController::class, 'getConfiguration'])->name('config');
-    
-    // Status check
-    Route::get('/status', [ExternalScannerController::class, 'getStatus'])->name('status');
+    Route::post('/scan', [ScannerController::class, 'receiveExternalScan'])->name('receive');
     
     // Alternative endpoints for different scanner apps
-    Route::post('/barcode', [ExternalScannerController::class, 'receiveBarcode'])->name('barcode');
-    Route::post('/receive', [ExternalScannerController::class, 'receiveBarcode'])->name('receive-alt');
+    Route::post('/barcode', [ScannerController::class, 'receiveExternalScan'])->name('barcode');
+    Route::post('/receive', [ScannerController::class, 'receiveExternalScan'])->name('receive-alt');
 });

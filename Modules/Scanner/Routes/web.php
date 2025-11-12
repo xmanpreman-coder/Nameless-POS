@@ -29,3 +29,6 @@ Route::middleware('auth')->group(function() {
         Route::post('/search-product', [ScannerController::class, 'searchProduct'])->name('search-product');
     });
 });
+
+// External Scanner Routes (without auth for mobile apps)
+Route::post('scanner/external/receive', [ScannerController::class, 'receiveExternalScan'])->name('scanner.external.mobile');

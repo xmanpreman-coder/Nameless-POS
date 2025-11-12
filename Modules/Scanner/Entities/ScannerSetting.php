@@ -14,6 +14,7 @@ class ScannerSetting extends Model
         'camera_settings',
         'usb_settings', 
         'bluetooth_settings',
+        'external_settings',
         'beep_sound',
         'vibration',
         'scan_mode',
@@ -26,6 +27,7 @@ class ScannerSetting extends Model
         'camera_settings' => 'array',
         'usb_settings' => 'array',
         'bluetooth_settings' => 'array',
+        'external_settings' => 'array',
         'beep_sound' => 'boolean',
         'vibration' => 'boolean',
         'auto_focus' => 'boolean'
