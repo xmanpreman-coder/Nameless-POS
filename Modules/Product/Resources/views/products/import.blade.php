@@ -54,8 +54,11 @@
                                 <button type="submit" class="btn btn-primary">
                                     <i class="bi bi-upload"></i> Upload and Update Products
                                 </button>
-                                <a href="{{ route('products.download-template') }}" class="btn btn-info">
-                                    <i class="bi bi-download"></i> Download CSV Template
+                                <a href="{{ route('products.download-template-xlsx') }}" class="btn btn-info">
+                                    <i class="bi bi-file-earmark-spreadsheet"></i> Download Excel Template (.xlsx)
+                                </a>
+                                <a href="{{ route('products.download-template') }}" class="btn btn-secondary">
+                                    <i class="bi bi-download"></i> Download CSV Template (Excel-friendly)
                                 </a>
                                 <a href="{{ route('products.index') }}" class="btn btn-secondary">
                                     <i class="bi bi-arrow-left"></i> Back to Products

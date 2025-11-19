@@ -15,6 +15,9 @@ use Modules\Upload\Entities\Upload;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Modules\Product\Entities\Category;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class ProductController extends Controller
 {
@@ -192,18 +195,52 @@ class ProductController extends Controller
             ]
         ];
 
-        // Create CSV content with UTF-8 BOM for Excel compatibility
+        // Create semicolon-delimited CSV content with UTF-8 BOM for Excel (locale-friendly)
         $csvContent = "\xEF\xBB\xBF"; // UTF-8 BOM
-        $csvContent .= implode(',', $headers) . "\r\n";
-        
+        $csvContent .= implode(';', $headers) . "\r\n";
+
         foreach ($sampleData as $row) {
-            $csvContent .= implode(',', $row) . "\r\n";
+            // Escape any semicolons inside values
+            $escaped = array_map(function($v){
+                if (is_null($v)) return '';
+                return str_replace(';', ',', $v);
+            }, $row);
+            $csvContent .= implode(';', $escaped) . "\r\n";
         }
 
         return response($csvContent)
             ->header('Content-Type', 'text/csv; charset=UTF-8')
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
             ->header('Content-Transfer-Encoding', 'binary');
+    }
+
+    /**
+     * Download Excel (.xlsx) template using maatwebsite/excel
+     */
+    public function downloadXlsxTemplate()
+    {
+        abort_if(Gate::denies('access_products'), 403);
+
+        $filename = 'product_template.xlsx';
+
+        $headers = [
+            'SKU', 'GTIN', 'Name', 'Cost', 'Price', 'Quantity', 'Unit', 'Category'
+        ];
+
+        $sampleData = [
+            ['PRD001','1234567890123','Sample Product 1','50000.00','75000.00','100','pcs','Electronics'],
+            ['PRD002','1234567890124','Sample Product 2','25000.00','35000.00','50','pcs','Books'],
+        ];
+
+        $export = new class($sampleData, $headers) implements FromArray, WithHeadings {
+            private $data;
+            private $headings;
+            public function __construct($data, $headings) { $this->data = $data; $this->headings = $headings; }
+            public function array(): array { return $this->data; }
+            public function headings(): array { return $this->headings; }
+        };
+
+        return Excel::download($export, $filename);
     }
 
     public function importCsv(Request $request) {
@@ -219,14 +256,33 @@ class ProductController extends Controller
         // Read CSV file
         $data = [];
         if (($handle = fopen($path, 'r')) !== false) {
-            // Skip BOM if exists
-            $bom = fread($handle, 3);
-            if ($bom !== chr(0xEF).chr(0xBB).chr(0xBF)) {
-                rewind($handle);
+            // Reset pointer and read first line to detect delimiter and BOM
+            rewind($handle);
+            $firstLine = fgets($handle);
+            if ($firstLine === false) {
+                toast('CSV file is empty!', 'error');
+                return redirect()->back();
             }
-            
-            // Read header
-            $header = fgetcsv($handle);
+
+            // Remove UTF-8 BOM if present
+            $firstLineClean = preg_replace('/^\xEF\xBB\xBF/', '', $firstLine);
+
+            // Detect delimiter by counting occurrences (comma, semicolon, tab)
+            $commaCount = substr_count($firstLineClean, ',');
+            $semiCount = substr_count($firstLineClean, ';');
+            $tabCount = substr_count($firstLineClean, "\t");
+
+            if ($tabCount > $commaCount && $tabCount > $semiCount) {
+                $delimiter = "\t";
+            } elseif ($semiCount > $commaCount) {
+                $delimiter = ';';
+            } else {
+                $delimiter = ',';
+            }
+
+            // Rewind and read header with detected delimiter
+            rewind($handle);
+            $header = fgetcsv($handle, 0, $delimiter);
             if ($header === false) {
                 toast('CSV file is empty!', 'error');
                 return redirect()->back();
@@ -236,17 +292,30 @@ class ProductController extends Controller
             $header = array_map('trim', $header);
             $header = array_map('strtolower', $header);
             
-            // Expected columns
+            // Expected columns and common aliases
             $expectedColumns = ['sku', 'gtin', 'name', 'cost', 'price', 'quantity', 'unit', 'category'];
+            $aliases = [
+                'sku' => ['sku', 'product_sku', 'product sku', 'product_code', 'product code', 'code', 'barcode'],
+                'gtin' => ['gtin', 'product_gtin', 'product gtin', 'ean', 'upc'],
+                'name' => ['name', 'product_name', 'product name'],
+                'cost' => ['cost', 'product_cost', 'product cost'],
+                'price' => ['price', 'product_price', 'product price'],
+                'quantity' => ['quantity', 'qty', 'product_quantity', 'product quantity'],
+                'unit' => ['unit', 'product_unit', 'product unit'],
+                'category' => ['category', 'cat', 'category_name', 'category name'],
+            ];
+
             $columnMap = [];
-            
-            // Map columns
-            foreach ($expectedColumns as $expected) {
+
+            // Map columns using aliases (case-insensitive)
+            foreach ($aliases as $expected => $variants) {
                 foreach ($header as $index => $col) {
-                    if (strtolower(trim($col)) === $expected || 
-                        strtolower(trim($col)) === str_replace('_', ' ', $expected)) {
-                        $columnMap[$expected] = $index;
-                        break;
+                    $colNorm = strtolower(trim($col));
+                    foreach ($variants as $v) {
+                        if ($colNorm === strtolower($v)) {
+                            $columnMap[$expected] = $index;
+                            break 2;
+                        }
                     }
                 }
             }
@@ -263,7 +332,7 @@ class ProductController extends Controller
             $errorCount = 0;
             $errors = [];
             
-            while (($row = fgetcsv($handle)) !== false) {
+            while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
                 $rowNumber++;
                 
                 // Skip empty rows
