@@ -8,7 +8,7 @@ use Livewire\Component;
 class Checkout extends Component
 {
 
-    public $listeners = ['productSelected', 'discountModalRefresh', 'refreshCart'];
+    public $listeners = ['productSelected', 'discountModalRefresh', 'refreshCart', 'resetCart'];
 
     public $cart_instance;
     public $customers;
@@ -105,7 +105,7 @@ class Checkout extends Component
                 'product_discount'      => 0.00,
                 'product_discount_type' => 'fixed',
                 'sub_total'             => $this->calculate($product)['sub_total'],
-                'code'                  => $product['product_sku'] ?? $product['product_code'] ?? '',
+                'code'                  => $product['product_sku'] ?? '',
                 'gtin'                  => $product['product_gtin'] ?? null,
                 'stock'                 => $product['product_quantity'],
                 'unit'                  => $product['product_unit'],

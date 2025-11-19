@@ -200,7 +200,7 @@ document.addEventListener('keydown', function(e) {
             <tr>
                 <td class="text-left">
                     <div>{{ $item->product_name }}</div>
-                    <small>{{ $item->product_code }}</small>
+                    <small>{{ $item->product_sku }}</small>
                 </td>
                 <td class="text-center">{{ $item->quantity }}</td>
                 <td class="text-right">{{ format_currency($item->unit_price) }}</td>

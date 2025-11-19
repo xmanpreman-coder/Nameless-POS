@@ -60,7 +60,7 @@
                         @foreach($search_results as $result)
                             <li class="list-group-item list-group-item-action">
                                 <a wire:click="resetQuery" wire:click.prevent="selectProduct({{ $result }})" href="#">
-                                    {{ $result->product_name }} | SKU: {{ $result->product_sku ?? $result->product_code ?? 'N/A' }}@if($result->product_gtin) | GTIN: {{ $result->product_gtin }}@endif
+                                    {{ $result->product_name }} | SKU: {{ $result->product_sku ?? 'N/A' }}@if($result->product_gtin) | GTIN: {{ $result->product_gtin }}@endif
                                 </a>
                             </li>
                         @endforeach

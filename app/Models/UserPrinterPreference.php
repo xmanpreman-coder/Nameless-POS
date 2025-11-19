@@ -9,6 +9,7 @@ class UserPrinterPreference extends Model
 {
     protected $fillable = [
         'user_id',
+        'thermal_printer_setting_id',
         'receipt_printer_name',
         'receipt_paper_size',
         'auto_print_receipt',
@@ -25,5 +26,10 @@ class UserPrinterPreference extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function printer(): BelongsTo
+    {
+        return $this->belongsTo(ThermalPrinterSetting::class, 'thermal_printer_setting_id');
     }
 }

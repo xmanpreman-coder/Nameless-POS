@@ -136,9 +136,9 @@
                     </thead>
                     <tbody>
                         @forelse($products as $product)
-                            @php
+                                @php
                                 $isSelected = in_array($product->id, $selectedProducts);
-                                $barcodeValue = $product->product_gtin ?? $product->product_sku ?? $product->product_code ?? '';
+                                $barcodeValue = $product->product_gtin ?? $product->product_sku ?? '';
                                 $hasValidBarcode = !empty($barcodeValue) && is_numeric($barcodeValue);
                             @endphp
                             <tr class="{{ $isSelected ? 'table-active' : '' }}">
@@ -161,7 +161,7 @@
                                     {{ $product->category->category_name ?? 'N/A' }}
                                 </td>
                                 <td class="align-middle">
-                                    {{ $product->product_sku ?? $product->product_code ?? 'N/A' }}
+                                    {{ $product->product_sku ?? 'N/A' }}
                                 </td>
                                 <td class="align-middle">
                                     {{ $product->product_gtin ?? 'N/A' }}

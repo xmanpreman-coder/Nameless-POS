@@ -12,12 +12,26 @@
             <form id="checkout-form" action="{{ route('app.pos.store') }}" method="POST">
                 @csrf
                 <div class="modal-body">
+                    <!-- Loading State -->
                     <div id="checkout-loading" class="text-center" style="display: none;">
                         <div class="spinner-border text-primary" role="status">
                             <span class="sr-only">Loading...</span>
                         </div>
                         <p class="mt-2">Processing sale...</p>
                     </div>
+
+                    <!-- Success State (shown after sale created) -->
+                    <div id="checkout-success" class="text-center" style="display: none;">
+                        <div class="mb-3">
+                            <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                        </div>
+                        <h4 class="text-success mb-2">Sale Created Successfully!</h4>
+                        <p class="text-muted mb-2">Receipt ID: <strong id="success-receipt-id"></strong></p>
+                        <div class="alert alert-info">
+                            <p class="mb-0">✓ Sale saved. You can print the receipt below or close to start a new sale.</p>
+                        </div>
+                    </div>
+
                     <div id="checkout-content">
                     @if (session()->has('checkout_message'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -104,9 +118,16 @@
                     </div>
 
                 </div>
-                <div class="modal-footer">
+                <!-- Footer: Checkout state -->
+                <div class="modal-footer" id="checkout-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary" id="submit-checkout-btn">Submit</button>
+                </div>
+
+                <!-- Footer: Success state (after sale created) -->
+                <div class="modal-footer" id="success-footer" style="display: none;">
+                    <button type="button" class="btn btn-secondary" id="close-success-btn">Close & New Sale</button>
+                    <button type="button" class="btn btn-primary" id="print-receipt-btn"><i class="bi bi-printer"></i> Print Receipt</button>
                 </div>
             </form>
         </div>

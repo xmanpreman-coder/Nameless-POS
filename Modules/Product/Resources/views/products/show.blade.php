@@ -14,8 +14,8 @@
     <div class="container-fluid mb-4">
         <div class="row mb-3">
             <div class="col-md-12">
-                @php
-                    $barcodeValue = $product->product_gtin ?? $product->product_sku ?? $product->product_code ?? '';
+                    @php
+                    $barcodeValue = $product->product_gtin ?? $product->product_sku ?? '';
                 @endphp
                 @if($barcodeValue)
                     {!! \Milon\Barcode\Facades\DNS1DFacade::getBarCodeSVG($barcodeValue, $product->product_barcode_symbology, 2, 110) !!}
@@ -30,7 +30,7 @@
                             <table class="table table-bordered table-striped mb-0">
                                 <tr>
                                     <th>SKU (Gudang)</th>
-                                    <td>{{ $product->product_sku ?? $product->product_code ?? 'N/A' }}</td>
+                                    <td>{{ $product->product_sku ?? 'N/A' }}</td>
                                 </tr>
                                 @if($product->product_gtin)
                                 <tr>

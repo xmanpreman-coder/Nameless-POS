@@ -14,7 +14,7 @@
                 @endif
 
                 <div class="form-group">
-                    <label for="customer_id">Customer <small class="text-muted">(Opsional - untuk customer tetap)</small></label>
+                    <label for="customer_id">Customer <small class="text-muted">(Opsional)</small></label>
                     <div class="input-group">
                         <div class="input-group-prepend">
                             <a href="{{ route('customers.create') }}" target="_blank" class="btn btn-primary">
@@ -22,7 +22,7 @@
                             </a>
                         </div>
                         <select wire:model.live="customer_id" id="customer_id" class="form-control">
-                            <option value="">Walk-in Customer (Random)</option>
+                            <option value="">-- Pilih Customer atau Kosongkan untuk Walk-in --</option>
                             @foreach($customers as $customer)
                                 <option value="{{ $customer->id }}">{{ $customer->customer_name }}</option>
                             @endforeach

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>@yield('title')</title>
     <meta content="Fahim Anzam Dip" name="author">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' name='viewport'>
 
     <!-- Favicon -->
@@ -53,8 +54,8 @@
                 });
             }
             
-            // Fix sidebar active state issues
-            setTimeout(function() {
+            // Fix sidebar active state issues - using requestAnimationFrame for better timing
+            requestAnimationFrame(function() {
                 // Reset all sidebar menu items to proper state based on current route
                 const currentUrl = window.location.href;
                 const sidebarItems = document.querySelectorAll('.c-sidebar-nav-item');
@@ -81,14 +82,14 @@
                 // Also fix dropdown menu states
                 const dropdownItems = document.querySelectorAll('.c-sidebar-nav-dropdown');
                 dropdownItems.forEach(function(dropdown) {
-                    const activeChild = dropdown.querySelector('.c-sidebar-nav-dropdown-item.c-active');
+                    const activeChild = dropdown.querySelector('.c-sidebar-nav-dropdown-items .c-sidebar-nav-item .c-sidebar-nav-link.c-active');
                     if (activeChild) {
                         dropdown.classList.add('c-show');
                     } else {
                         dropdown.classList.remove('c-show');
                     }
                 });
-            }, 200);
+            });
         });
     </script>
 </body>

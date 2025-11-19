@@ -52,6 +52,16 @@
         background: rgba(255, 255, 255, 0.1) !important;
     }
     
+    /* Ensure sidebar is always clickable */
+    .c-sidebar,
+    .c-sidebar-nav,
+    .c-sidebar-nav-item,
+    .c-sidebar-nav-link,
+    .c-sidebar-nav-dropdown-toggle,
+    .c-sidebar-nav-dropdown-items {
+        pointer-events: auto !important;
+    }
+    
     /* Prevent print button double-click visual issues */
     .buttons-print {
         pointer-events: auto !important;

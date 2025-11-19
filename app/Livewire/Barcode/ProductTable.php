@@ -42,9 +42,8 @@ class ProductTable extends Component
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('product_name', 'like', '%' . $this->search . '%')
-                      ->orWhere('product_sku', 'like', '%' . $this->search . '%')
-                      ->orWhere('product_gtin', 'like', '%' . $this->search . '%')
-                      ->orWhere('product_code', 'like', '%' . $this->search . '%'); // backward compatibility
+                            ->orWhere('product_sku', 'like', '%' . $this->search . '%')
+                            ->orWhere('product_gtin', 'like', '%' . $this->search . '%');
                 });
             })
             ->when($this->category_id, function ($query) {
@@ -89,8 +88,7 @@ class ProductTable extends Component
                 $query->where(function ($q) {
                     $q->where('product_name', 'like', '%' . $this->search . '%')
                       ->orWhere('product_sku', 'like', '%' . $this->search . '%')
-                      ->orWhere('product_gtin', 'like', '%' . $this->search . '%')
-                      ->orWhere('product_code', 'like', '%' . $this->search . '%');
+                      ->orWhere('product_gtin', 'like', '%' . $this->search . '%');
                 });
             })
             ->when($this->category_id, function ($query) {
@@ -115,8 +113,7 @@ class ProductTable extends Component
                 $query->where(function ($q) {
                     $q->where('product_name', 'like', '%' . $this->search . '%')
                       ->orWhere('product_sku', 'like', '%' . $this->search . '%')
-                      ->orWhere('product_gtin', 'like', '%' . $this->search . '%')
-                      ->orWhere('product_code', 'like', '%' . $this->search . '%');
+                      ->orWhere('product_gtin', 'like', '%' . $this->search . '%');
                 });
             })
             ->when($this->category_id, function ($query) {
@@ -172,7 +169,7 @@ class ProductTable extends Component
                 }
             } else {
                 // Use SKU
-                $barcodeValue = $product->product_sku ?? $product->product_code ?? '';
+                $barcodeValue = $product->product_sku ?? '';
                 if (empty($barcodeValue)) {
                     $errors[] = "Produk '{$product->product_name}': Tidak memiliki SKU!";
                     continue;
@@ -196,7 +193,7 @@ class ProductTable extends Component
                         'barcode' => $barcode,
                         'name' => $product->product_name,
                         'price' => $product->product_price,
-                        'sku' => $product->product_sku ?? $product->product_code ?? '',
+                        'sku' => $product->product_sku ?? '',
                         'gtin' => $product->product_gtin ?? '',
                         'barcode_value' => $barcodeValue,
                         'barcode_source' => $this->barcodeSource,

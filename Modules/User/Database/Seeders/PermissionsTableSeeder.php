@@ -115,7 +115,9 @@ class PermissionsTableSeeder extends Seeder
             //Settings
             'access_settings',
             //Units
-            'access_units'
+            'access_units',
+            //Scanner
+            'access_scanner'
         ];
 
         foreach ($permissions as $permission) {

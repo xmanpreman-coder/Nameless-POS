@@ -42,3 +42,8 @@ class SaleDetails extends Model
         return $value / 100;
     }
 }
+
+// Backwards-compatible alias: some older code or seeders refer to
+// "SaleDetail" (singular). Provide a tiny alias class so those
+// references continue to work without changing many files.
+class SaleDetail extends SaleDetails {}

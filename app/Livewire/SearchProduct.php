@@ -27,7 +27,6 @@ class SearchProduct extends Component
         $this->search_results = Product::where('product_name', 'like', '%' . $this->query . '%')
             ->orWhere('product_sku', 'like', '%' . $this->query . '%')
             ->orWhere('product_gtin', 'like', '%' . $this->query . '%')
-            ->orWhere('product_code', 'like', '%' . $this->query . '%') // Backward compatibility
             ->take($this->how_many)->get();
     }
 
@@ -88,7 +87,7 @@ class SearchProduct extends Component
     private function searchProductWithDetails($barcode) {
         // First try exact match
         $product = Product::where('product_barcode_symbology', $barcode)
-                         ->orWhere('product_code', $barcode)
+                         ->orWhere('product_sku', $barcode)
                          ->orWhere('product_gtin', $barcode)
                          ->first();
 
@@ -137,7 +136,7 @@ class SearchProduct extends Component
             $fullBarcode = $digit . $barcode;
             
             $product = Product::where('product_barcode_symbology', $fullBarcode)
-                             ->orWhere('product_code', $fullBarcode)
+                             ->orWhere('product_sku', $fullBarcode)
                              ->orWhere('product_gtin', $fullBarcode)
                              ->first();
             

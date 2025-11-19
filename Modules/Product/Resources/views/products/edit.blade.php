@@ -35,7 +35,7 @@
                                 <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="product_sku">SKU (Gudang) <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="product_sku" name="product_sku" required value="{{ $product->product_sku ?? $product->product_code ?? '' }}" placeholder="Kode SKU untuk gudang">
+                                        <input type="text" class="form-control" id="product_sku" name="product_sku" required value="{{ $product->product_sku ?? '' }}" placeholder="Kode SKU untuk gudang">
                                     </div>
                                 </div>
                                 <div class="col-md-4">

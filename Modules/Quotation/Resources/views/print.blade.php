@@ -91,16 +91,10 @@
                                 <tr>
                                     <td class="align-middle">
                                         {{ $item->product_name }} <br>
-                                        <span class="badge badge-success">
-                                                {{ $item->product_code }}
-                                            </span>
+                                        <span class="badge badge-success">{{ $item->product_sku }}</span>
                                     </td>
 
                                     <td class="align-middle">{{ format_currency($item->unit_price) }}</td>
-
-                                    <td class="align-middle">
-                                        {{ $item->quantity }}
-                                    </td>
 
                                     <td class="align-middle">
                                         {{ format_currency($item->product_discount_amount) }}

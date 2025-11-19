@@ -49,7 +49,7 @@
                                 @foreach($adjustment->adjustedProducts as $adjustedProduct)
                                     <tr>
                                         <td>{{ $adjustedProduct->product->product_name }}</td>
-                                        <td>{{ $adjustedProduct->product->product_code }}</td>
+                                        <td>{{ $adjustedProduct->product->product_sku }}</td>
                                         <td>{{ $adjustedProduct->quantity }}</td>
                                         <td>
                                             @if($adjustedProduct->type == 'add')

@@ -51,10 +51,10 @@ class ExternalScannerController extends Controller
                 'barcode' => $barcode,
                 'actual_barcode' => $searchResult['actual_barcode'],
                 'reconstructed' => $searchResult['reconstructed'],
-                'product' => [
+                    'product' => [
                     'id' => $product->id,
                     'name' => $product->product_name,
-                    'code' => $product->product_code,
+                    'code' => $product->product_sku,
                     'barcode' => $product->product_barcode_symbology,
                     'price' => $product->product_price,
                     'stock' => $product->product_quantity,
@@ -161,7 +161,7 @@ class ExternalScannerController extends Controller
                 'product' => $product ? [
                     'id' => $product->id,
                     'name' => $product->product_name,
-                    'code' => $product->product_code,
+                    'code' => $product->product_sku,
                     'price' => $product->product_price,
                     'stock' => $product->product_quantity
                 ] : null
@@ -186,9 +186,9 @@ class ExternalScannerController extends Controller
     {
         // First try exact match
         $product = Product::where('product_barcode_symbology', $barcode)
-                         ->orWhere('product_code', $barcode)
-                         ->orWhere('product_gtin', $barcode)
-                         ->first();
+             ->orWhere('product_sku', $barcode)
+             ->orWhere('product_gtin', $barcode)
+             ->first();
 
         if ($product) {
             return [
@@ -246,7 +246,7 @@ class ExternalScannerController extends Controller
             $fullBarcode = $digit . $barcode;
             
             $product = Product::where('product_barcode_symbology', $fullBarcode)
-                             ->orWhere('product_code', $fullBarcode)
+                             ->orWhere('product_sku', $fullBarcode)
                              ->orWhere('product_gtin', $fullBarcode)
                              ->first();
             

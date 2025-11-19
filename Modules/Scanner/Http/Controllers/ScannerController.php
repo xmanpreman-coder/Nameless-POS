@@ -100,10 +100,10 @@ class ScannerController extends Controller
                 'barcode' => $barcode,
                 'actual_barcode' => $searchResult['actual_barcode'],
                 'reconstructed' => $searchResult['reconstructed'],
-                'product' => [
+                    'product' => [
                     'id' => $product->id,
                     'name' => $product->product_name,
-                    'code' => $product->product_code,
+                    'code' => $product->product_sku,
                     'barcode' => $product->product_barcode_symbology,
                     'price' => $product->product_price,
                     'stock' => $product->product_quantity,
@@ -128,9 +128,9 @@ class ScannerController extends Controller
     {
         // First try exact match
         $product = Product::where('product_barcode_symbology', $barcode)
-                         ->orWhere('product_code', $barcode)
-                         ->orWhere('product_gtin', $barcode)
-                         ->first();
+             ->orWhere('product_sku', $barcode)
+             ->orWhere('product_gtin', $barcode)
+             ->first();
 
         if ($product) {
             return [
@@ -179,7 +179,7 @@ class ScannerController extends Controller
             $fullBarcode = $digit . $barcode;
             
             $product = Product::where('product_barcode_symbology', $fullBarcode)
-                             ->orWhere('product_code', $fullBarcode)
+                             ->orWhere('product_sku', $fullBarcode)
                              ->orWhere('product_gtin', $fullBarcode)
                              ->first();
             
@@ -256,15 +256,15 @@ class ScannerController extends Controller
                     'actual_barcode' => $searchResult['actual_barcode'],
                     'reconstructed' => $searchResult['reconstructed'],
                     'product' => [
-                        'id' => $product->id,
-                        'name' => $product->product_name,
-                        'code' => $product->product_code,
-                        'barcode' => $product->product_barcode_symbology,
-                        'price' => $product->product_price,
-                        'stock' => $product->product_quantity,
-                        'image' => $product->product_image ? asset('storage/' . $product->product_image) : null,
-                        'category' => $product->category ? $product->category->category_name : null
-                    ]
+                            'id' => $product->id,
+                            'name' => $product->product_name,
+                            'code' => $product->product_sku,
+                            'barcode' => $product->product_barcode_symbology,
+                            'price' => $product->product_price,
+                            'stock' => $product->product_quantity,
+                            'image' => $product->product_image ? asset('storage/' . $product->product_image) : null,
+                            'category' => $product->category ? $product->category->category_name : null
+                        ]
                 ]);
             }
 
@@ -307,16 +307,16 @@ class ScannerController extends Controller
 
         // Try partial matches
         $partialMatches = Product::where('product_barcode_symbology', 'LIKE', "%{$barcode}%")
-                                ->orWhere('product_code', 'LIKE', "%{$barcode}%")
-                                ->orWhere('product_name', 'LIKE', "%{$barcode}%")
-                                ->limit(5)
-                                ->get(['id', 'product_name', 'product_code', 'product_barcode_symbology']);
+                    ->orWhere('product_sku', 'LIKE', "%{$barcode}%")
+                    ->orWhere('product_name', 'LIKE', "%{$barcode}%")
+                    ->limit(5)
+                    ->get(['id', 'product_name', 'product_sku', 'product_barcode_symbology']);
 
         foreach ($partialMatches as $product) {
             $suggestions[] = [
                 'id' => $product->id,
                 'name' => $product->product_name,
-                'code' => $product->product_code,
+                'code' => $product->product_sku,
                 'barcode' => $product->product_barcode_symbology,
                 'match_type' => 'partial'
             ];

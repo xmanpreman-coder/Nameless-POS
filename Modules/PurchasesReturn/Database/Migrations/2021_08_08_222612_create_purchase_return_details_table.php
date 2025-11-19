@@ -18,7 +18,7 @@ class CreatePurchaseReturnDetailsTable extends Migration
             $table->unsignedBigInteger('purchase_return_id');
             $table->unsignedBigInteger('product_id')->nullable();
             $table->string('product_name');
-            $table->string('product_code');
+            $table->string('product_sku');
             $table->integer('quantity');
             $table->integer('price');
             $table->integer('unit_price');

@@ -13,6 +13,9 @@
 @stack('page_scripts')
 
 <script>
+    // Global tracking untuk print windows - prevent duplicates
+    window.printWindows = window.printWindows || {};
+    
     // Global function untuk print window (seperti print nota)
     function openPrintWindow(type, id) {
         if (arguments.length === 1) {
@@ -30,19 +33,63 @@
             : '';
         
         if (url) {
+            // Prevent duplicate print windows for same document
+            const windowKey = type + '_' + id;
+            
+            // Check if window already open for this document
+            if (window.printWindows[windowKey] && !window.printWindows[windowKey].closed) {
+                // Window already open, bring it to focus
+                window.printWindows[windowKey].focus();
+                return;
+            }
+            
+            // Close any previous window for this document
+            if (window.printWindows[windowKey]) {
+                window.printWindows[windowKey].close();
+            }
+            
+            // Open new print window
             const printWindow = window.open(url, '_blank', 'width=500,height=700');
             if (printWindow) {
+                // Store reference
+                window.printWindows[windowKey] = printWindow;
+                
+                // Auto-print when ready
                 printWindow.onload = function() {
                     setTimeout(function() {
                         printWindow.print();
                     }, 500);
                 };
+                
+                // Clean up reference when window closes
+                printWindow.onbeforeunload = function() {
+                    // Clear reference after a short delay to allow print dialog to complete
+                    setTimeout(function() {
+                        if (window.printWindows[windowKey] === printWindow) {
+                            window.printWindows[windowKey] = null;
+                        }
+                    }, 100);
+                };
             }
         }
     }
-    
-    // Initialize global print protection flag
-    window.printInProgress = window.printInProgress || false;
 </script>
 
 @livewireScripts
+
+<script>
+    // Ensure sidebar dropdown toggles work properly on all pages
+    // This event handler uses capture phase to prevent event blocking
+    document.addEventListener('click', function(e) {
+        const dropdownToggle = e.target.closest('.c-sidebar-nav-dropdown-toggle');
+        if (dropdownToggle) {
+            e.preventDefault();
+            e.stopPropagation();
+            const parentDropdown = dropdownToggle.closest('.c-sidebar-nav-dropdown');
+            if (parentDropdown) {
+                parentDropdown.classList.toggle('c-show');
+            }
+            return false;
+        }
+    }, true); // Use capture phase to ensure it runs before other handlers
+</script>

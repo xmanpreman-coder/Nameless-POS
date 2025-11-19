@@ -1,0 +1,138 @@
+<div class="modal fade" id="checkoutModal" tabindex="-1" role="dialog" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="checkoutModalLabel">
+                    <i class="bi bi-cart-check text-primary"></i> Confirm Sale
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="checkout-form" action="<?php echo e(route('app.pos.store')); ?>" method="POST">
+                <?php echo csrf_field(); ?>
+                <div class="modal-body">
+                    <!-- Loading State -->
+                    <div id="checkout-loading" class="text-center" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <p class="mt-2">Processing sale...</p>
+                    </div>
+
+                    <!-- Success State (shown after sale created) -->
+                    <div id="checkout-success" class="text-center" style="display: none;">
+                        <div class="mb-3">
+                            <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
+                        </div>
+                        <h4 class="text-success mb-2">Sale Created Successfully!</h4>
+                        <p class="text-muted mb-2">Receipt ID: <strong id="success-receipt-id"></strong></p>
+                        <div class="alert alert-info">
+                            <p class="mb-0">✓ Sale saved. You can print the receipt below or close to start a new sale.</p>
+                        </div>
+                    </div>
+
+                    <div id="checkout-content">
+                    <!-- __BLOCK__ --><?php if(session()->has('checkout_message')): ?>
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <div class="alert-body">
+                                <span><?php echo e(session('checkout_message')); ?></span>
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">×</span>
+                                </button>
+                            </div>
+                        </div>
+                    <?php endif; ?> <!-- __ENDBLOCK__ -->
+                    <div class="row">
+                        <div class="col-lg-7">
+                            <input type="hidden" value="<?php echo e($customer_id); ?>" name="customer_id">
+                            <input type="hidden" value="<?php echo e($global_tax); ?>" name="tax_percentage">
+                            <input type="hidden" value="<?php echo e($global_discount); ?>" name="discount_percentage">
+                            <input type="hidden" value="<?php echo e($shipping); ?>" name="shipping_amount">
+                            <div class="form-row">
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <label for="total_amount">Total Amount <span class="text-danger">*</span></label>
+                                        <input id="total_amount" type="text" class="form-control" name="total_amount" value="<?php echo e($total_amount); ?>" readonly required>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <label for="paid_amount">Received Amount <span class="text-danger">*</span></label>
+                                        <input id="paid_amount" type="text" class="form-control" name="paid_amount" value="<?php echo e($total_amount); ?>" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="payment_method">Payment Method <span class="text-danger">*</span></label>
+                                <select class="form-control" name="payment_method" id="payment_method" required>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Credit Card">Credit Card</option>
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Cheque">Cheque</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="note">Note (If Needed)</label>
+                                <textarea name="note" id="note" rows="5" class="form-control"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <tr>
+                                        <th>Total Products</th>
+                                        <td>
+                                                <span class="badge badge-success">
+                                                    <?php echo e(Cart::instance($cart_instance)->count()); ?>
+
+                                                </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Order Tax (<?php echo e($global_tax); ?>%)</th>
+                                        <td>(+) <?php echo e(format_currency(Cart::instance($cart_instance)->tax())); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Discount (<?php echo e($global_discount); ?>%)</th>
+                                        <td>(-) <?php echo e(format_currency(Cart::instance($cart_instance)->discount())); ?></td>
+                                    </tr>
+                                    <tr>
+                                        <th>Shipping</th>
+                                        <input type="hidden" value="<?php echo e($shipping); ?>" name="shipping_amount">
+                                        <td>(+) <?php echo e(format_currency($shipping)); ?></td>
+                                    </tr>
+                                    <tr class="text-primary">
+                                        <th>Grand Total</th>
+                                        <?php
+                                            $total_with_shipping = Cart::instance($cart_instance)->total() + (float) $shipping
+                                        ?>
+                                        <th>
+                                            (=) <?php echo e(format_currency($total_with_shipping)); ?>
+
+                                        </th>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+                </div>
+                <!-- Footer: Checkout state -->
+                <div class="modal-footer" id="checkout-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="submit-checkout-btn">Submit</button>
+                </div>
+
+                <!-- Footer: Success state (after sale created) -->
+                <div class="modal-footer" id="success-footer" style="display: none;">
+                    <button type="button" class="btn btn-secondary" id="close-success-btn">Close & New Sale</button>
+                    <button type="button" class="btn btn-primary" id="print-receipt-btn"><i class="bi bi-printer"></i> Print Receipt</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php /**PATH D:\project warnet\Nameless\resources\views/livewire/pos/includes/checkout-modal.blade.php ENDPATH**/ ?>

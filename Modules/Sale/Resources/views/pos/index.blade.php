@@ -88,26 +88,30 @@
                         },
                         success: function(response) {
                             if (response.success) {
-                                // Close modal first
-                                $('#checkoutModal').modal('hide');
-                                
-                                // Reset form
-                                $('#checkout-form')[0].reset();
-                                
-                                // Show success message
-                                if (typeof toastr !== 'undefined') {
-                                    toastr.success(response.message || 'POS Sale Created!');
-                                }
-                                
-                                // Print nota terlebih dahulu
-                                openPrintWindow('sales', response.sale_id);
-                                
-                                // Reload halaman setelah 1.5 detik untuk reset cart dan semua state
-                                // Ini memastikan cart di-reset dengan benar
-                                setTimeout(function() {
-                                    window.location.reload();
-                                }, 1500);
-                            }
+                                        // Close modal first
+                                        $('#checkoutModal').modal('hide');
+
+                                        // Reset form
+                                        $('#checkout-form')[0].reset();
+
+                                        // Show success message
+                                        if (typeof toastr !== 'undefined') {
+                                            toastr.success(response.message || 'POS Sale Created!');
+                                        }
+
+                                        // Print nota immediately
+                                        openPrintWindow('sales', response.sale_id);
+
+                                        // Reset cart via Livewire event immediately
+                                        Livewire.dispatch('resetCart');
+
+                                        // Restore UI after a short delay
+                                        setTimeout(function() {
+                                            $('#checkout-loading').hide();
+                                            $('#checkout-content').show();
+                                            $('#submit-checkout-btn').prop('disabled', false);
+                                        }, 2000);
+                                    }
                         },
                         error: function(xhr) {
                             // Show error message
@@ -133,35 +137,6 @@
                 });
             });
         });
-        
-        // Function untuk print window (sama seperti di sales/index.blade.php)
-        let printWindowOpen = false;
-        
-        function openPrintWindow(type, id) {
-            // Prevent multiple print windows
-            if (printWindowOpen) {
-                return;
-            }
-            
-            const url = type === 'sales' 
-                ? '/sales/pos/print/' + id
-                : type === 'purchases'
-                ? '/purchases/print/' + id
-                : '/quotations/print/' + id;
-            
-            const printWindow = window.open(url, '_blank', 'width=500,height=700');
-            if (printWindow) {
-                printWindowOpen = true;
-                
-                // Reset flag setelah window ditutup
-                const checkClosed = setInterval(function() {
-                    if (printWindow.closed) {
-                        printWindowOpen = false;
-                        clearInterval(checkClosed);
-                    }
-                }, 500);
-            }
-        }
     </script>
 
 @endpush

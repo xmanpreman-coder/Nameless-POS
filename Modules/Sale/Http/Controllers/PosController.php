@@ -79,7 +79,7 @@ class PosController extends Controller
                     'sale_id' => $sale->id,
                     'product_id' => $cart_item->id,
                     'product_name' => $cart_item->name,
-                    'product_code' => $cart_item->options->code,
+                    'product_sku' => $cart_item->options->code,
                     'quantity' => $cart_item->qty,
                     'price' => $cart_item->price * 100,
                     'unit_price' => $cart_item->options->unit_price * 100,

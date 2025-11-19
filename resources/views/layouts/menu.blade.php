@@ -298,81 +298,100 @@
     </li>
 @endcan
 
-<!-- Scanner Module -->
-<li class="c-sidebar-nav-item c-sidebar-nav-dropdown {{ request()->routeIs('scanner.*') ? 'c-show' : '' }}">
-    <a class="c-sidebar-nav-link c-sidebar-nav-dropdown-toggle" href="#">
-        <i class="c-sidebar-nav-icon bi bi-upc-scan" style="line-height: 1;"></i> Barcode Scanner
-    </a>
-    <ul class="c-sidebar-nav-dropdown-items">
-        <li class="c-sidebar-nav-item">
-            <a class="c-sidebar-nav-link {{ request()->routeIs('scanner.index') ? 'c-active' : '' }}" href="{{ route('scanner.index') }}">
-                <i class="c-sidebar-nav-icon bi bi-speedometer2" style="line-height: 1;"></i> Scanner Dashboard
-            </a>
-        </li>
-        <li class="c-sidebar-nav-item">
-            <a class="c-sidebar-nav-link {{ request()->routeIs('scanner.scan') ? 'c-active' : '' }}" href="{{ route('scanner.scan') }}">
-                <i class="c-sidebar-nav-icon bi bi-camera" style="line-height: 1;"></i> Start Scanning
-            </a>
-        </li>
-        <li class="c-sidebar-nav-item">
-            <a class="c-sidebar-nav-link {{ request()->routeIs('scanner.test-camera') ? 'c-active' : '' }}" href="{{ route('scanner.test-camera') }}">
-                <i class="c-sidebar-nav-icon bi bi-camera-video" style="line-height: 1;"></i> Test Camera
-            </a>
-        </li>
-        <li class="c-sidebar-nav-item">
-            <a class="c-sidebar-nav-link {{ request()->routeIs('scanner.external-setup') ? 'c-active' : '' }}" href="{{ route('scanner.external-setup') }}">
-                <i class="c-sidebar-nav-icon bi bi-phone" style="line-height: 1;"></i> External Scanner Setup
-            </a>
-        </li>
-    </ul>
-</li>
-
-@can('access_currencies|access_settings')
-    <li class="c-sidebar-nav-item c-sidebar-nav-dropdown {{ request()->routeIs('currencies*') || request()->routeIs('units*') ? 'c-show' : '' }}">
+@can('access_currencies|access_settings|access_scanner')
+    <li class="c-sidebar-nav-item c-sidebar-nav-dropdown {{ request()->routeIs('currencies*') || request()->routeIs('units*') || request()->routeIs('settings*') || request()->routeIs('printer-settings*') || request()->routeIs('thermal-printer*') || request()->routeIs('scanner.*') ? 'c-show' : '' }}">
         <a class="c-sidebar-nav-link c-sidebar-nav-dropdown-toggle" href="#">
-            <i class="c-sidebar-nav-icon bi bi-gear" style="line-height: 1;"></i> Settings
+            <i class="c-sidebar-nav-icon bi bi-gear" style="line-height: 1;"></i> Configuration
         </a>
-        @can('access_units')
-            <ul class="c-sidebar-nav-dropdown-items">
+        <ul class="c-sidebar-nav-dropdown-items">
+            <!-- General Settings Section -->
+            @can('access_settings')
+                <li class="c-sidebar-nav-item">
+                    <a class="c-sidebar-nav-link {{ request()->routeIs('settings*') ? 'c-active' : '' }}" href="{{ route('settings.index') }}">
+                        <i class="c-sidebar-nav-icon bi bi-sliders" style="line-height: 1;"></i> General Settings
+                    </a>
+                </li>
+            @endcan
+            
+            @can('access_currencies')
+                <li class="c-sidebar-nav-item">
+                    <a class="c-sidebar-nav-link {{ request()->routeIs('currencies*') ? 'c-active' : '' }}" href="{{ route('currencies.index') }}">
+                        <i class="c-sidebar-nav-icon bi bi-cash-stack" style="line-height: 1;"></i> Currencies
+                    </a>
+                </li>
+            @endcan
+            
+            @can('access_units')
                 <li class="c-sidebar-nav-item">
                     <a class="c-sidebar-nav-link {{ request()->routeIs('units*') ? 'c-active' : '' }}" href="{{ route('units.index') }}">
                         <i class="c-sidebar-nav-icon bi bi-calculator" style="line-height: 1;"></i> Units
                     </a>
                 </li>
-            </ul>
-        @endcan
-        @can('access_currencies')
-        <ul class="c-sidebar-nav-dropdown-items">
-            <li class="c-sidebar-nav-item">
-                <a class="c-sidebar-nav-link {{ request()->routeIs('currencies*') ? 'c-active' : '' }}" href="{{ route('currencies.index') }}">
-                    <i class="c-sidebar-nav-icon bi bi-cash-stack" style="line-height: 1;"></i> Currencies
+            @endcan
+            
+            <!-- Printer Settings Section (Consolidated) -->
+            @can('access_settings')
+                <li class="c-sidebar-nav-item c-sidebar-nav-dropdown {{ request()->routeIs('printer-settings*') || request()->routeIs('thermal-printer*') ? 'c-show' : '' }}">
+                    <a class="c-sidebar-nav-link c-sidebar-nav-dropdown-toggle" href="#">
+                        <i class="c-sidebar-nav-icon bi bi-printer" style="line-height: 1;"></i> Printer Management
+                    </a>
+                    <ul class="c-sidebar-nav-dropdown-items">
+                        <li class="c-sidebar-nav-item">
+                            <a class="c-sidebar-nav-link {{ request()->routeIs('printer-settings*') ? 'c-active' : '' }}" href="{{ route('printer-settings.index') }}">
+                                <i class="c-sidebar-nav-icon bi bi-printer" style="line-height: 1;"></i> Printer Settings
+                            </a>
+                        </li>
+                        <li class="c-sidebar-nav-item">
+                            <a class="c-sidebar-nav-link {{ request()->routeIs('thermal-printer*') ? 'c-active' : '' }}" href="{{ route('thermal-printer.index') }}">
+                                <i class="c-sidebar-nav-icon bi bi-receipt" style="line-height: 1;"></i> Thermal Printers
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            @endcan
+            
+            <!-- Scanner Settings Section (Consolidated) -->
+            <li class="c-sidebar-nav-item c-sidebar-nav-dropdown {{ request()->routeIs('scanner.*') ? 'c-show' : '' }}">
+                <a class="c-sidebar-nav-link c-sidebar-nav-dropdown-toggle" href="#">
+                    <i class="c-sidebar-nav-icon bi bi-upc-scan" style="line-height: 1;"></i> Barcode Scanner
                 </a>
+                <ul class="c-sidebar-nav-dropdown-items">
+                    <li class="c-sidebar-nav-item">
+                        <a class="c-sidebar-nav-link {{ request()->routeIs('scanner.index') ? 'c-active' : '' }}" href="{{ route('scanner.index') }}">
+                            <i class="c-sidebar-nav-icon bi bi-speedometer2" style="line-height: 1;"></i> Scanner Dashboard
+                        </a>
+                    </li>
+                    <li class="c-sidebar-nav-item">
+                        <a class="c-sidebar-nav-link {{ request()->routeIs('scanner.scan') ? 'c-active' : '' }}" href="{{ route('scanner.scan') }}">
+                            <i class="c-sidebar-nav-icon bi bi-camera" style="line-height: 1;"></i> Start Scanning
+                        </a>
+                    </li>
+                    <li class="c-sidebar-nav-item">
+                        <a class="c-sidebar-nav-link {{ request()->routeIs('scanner.test-camera') ? 'c-active' : '' }}" href="{{ route('scanner.test-camera') }}">
+                            <i class="c-sidebar-nav-icon bi bi-camera-video" style="line-height: 1;"></i> Test Camera
+                        </a>
+                    </li>
+                    <li class="c-sidebar-nav-item">
+                        <a class="c-sidebar-nav-link {{ request()->routeIs('scanner.external-setup') ? 'c-active' : '' }}" href="{{ route('scanner.external-setup') }}">
+                            <i class="c-sidebar-nav-icon bi bi-phone" style="line-height: 1;"></i> External Setup
+                        </a>
+                    </li>
+                    <li class="c-sidebar-nav-item">
+                        <a class="c-sidebar-nav-link {{ request()->routeIs('scanner.settings') ? 'c-active' : '' }}" href="{{ route('scanner.settings') }}">
+                            <i class="c-sidebar-nav-icon bi bi-sliders" style="line-height: 1;"></i> Scanner Settings
+                        </a>
+                    </li>
+                </ul>
             </li>
+            
+            <!-- System Section -->
+            @can('access_settings')
+                <li class="c-sidebar-nav-item">
+                    <button class="c-sidebar-nav-link" id="backup-database-button" type="button" style="border: none; background: none; text-align: left;">
+                        <i class="c-sidebar-nav-icon bi bi-database-down" style="line-height: 1;"></i> Backup Database
+                    </button>
+                </li>
+            @endcan
         </ul>
-        @endcan
-        @can('access_settings')
-        <ul class="c-sidebar-nav-dropdown-items">
-            <li class="c-sidebar-nav-item">
-                <a class="c-sidebar-nav-link {{ request()->routeIs('settings*') ? 'c-active' : '' }}" href="{{ route('settings.index') }}">
-                    <i class="c-sidebar-nav-icon bi bi-sliders" style="line-height: 1;"></i> General Settings
-                </a>
-            </li>
-            <li class="c-sidebar-nav-item">
-                <a class="c-sidebar-nav-link {{ request()->routeIs('printer-settings*') ? 'c-active' : '' }}" href="{{ route('printer-settings.index') }}">
-                    <i class="c-sidebar-nav-icon bi bi-printer" style="line-height: 1;"></i> Printer Settings
-                </a>
-            </li>
-            <li class="c-sidebar-nav-item">
-                <a class="c-sidebar-nav-link {{ request()->routeIs('scanner.settings') ? 'c-active' : '' }}" href="{{ route('scanner.settings') }}">
-                    <i class="c-sidebar-nav-icon bi bi-upc-scan" style="line-height: 1;"></i> Scanner Settings
-                </a>
-            </li>
-            <li class="c-sidebar-nav-item">
-                <button class="c-sidebar-nav-link" id="backup-database-button" type="button" style="border: none; background: none; text-align: left;">
-                    <i class="c-sidebar-nav-icon bi bi-database-down" style="line-height: 1;"></i> Backup Database
-                </button>
-            </li>
-        </ul>
-        @endcan
     </li>
 @endcan

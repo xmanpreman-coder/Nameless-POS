@@ -8,12 +8,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         * {
-            font-size: 12px;
-            line-height: 18px;
-            font-family: 'Ubuntu', sans-serif;
+            font-size: 11px;
+            line-height: 14px;
+            font-family: 'Courier New', 'Ubuntu', sans-serif;
+            margin: 0;
+            padding: 0;
         }
         h2 {
-            font-size: 16px;
+            font-size: 13px;
+            margin: 0;
         }
         td,
         th,
@@ -22,37 +25,87 @@
             border-collapse: collapse;
         }
         tr {border-bottom: 1px dashed #ddd;}
-        td,th {padding: 7px 0;width: 50%;}
+        td,th {padding: 3px 0; margin: 0;}
 
-        table {width: 100%;}
+        table {width: 100%; margin: 0;}
         tfoot tr th:first-child {text-align: left;}
 
         .centered {
             text-align: center;
             align-content: center;
         }
-        small{font-size:11px;}
+        small{font-size:10px;}
+        
+        body {
+            width: 100%;
+            max-width: 350px;
+            margin: 0;
+            padding: 2mm;
+            background: white;
+        }
+        
+        #receipt-data {
+            width: 100%;
+            max-width: 350px;
+            margin: 0;
+            padding: 0;
+        }
 
         @media print {
-            * {
-                font-size:12px;
-                line-height: 20px;
+            body, html {
+                width: 100%;
+                max-width: 350px;
+                margin: 0 !important;
+                padding: 2mm !important;
+                background: white !important;
             }
-            td,th {padding: 5px 0;}
+            
+            @page {
+                size: auto;
+                margin: 0;
+                padding: 0;
+            }
+            
+            * {
+                font-size: 11px;
+                line-height: 14px;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            td, th {
+                padding: 2px 0 !important;
+                margin: 0 !important;
+            }
+            
+            h2 {
+                font-size: 12px;
+                margin: 2px 0 !important;
+            }
+            
+            tr {
+                page-break-inside: avoid;
+            }
+            
+            table {
+                page-break-inside: avoid;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            #receipt-data {
+                page-break-inside: avoid;
+                page-break-after: avoid;
+            }
+            
             .hidden-print {
                 display: none !important;
             }
             .no-print {
                 display: none !important;
             }
-            tbody::after {
-                content: '';
-                display: block;
-                page-break-after: always;
-                page-break-inside: auto;
-                page-break-before: avoid;
-            }
         }
+        
         .print-actions {
             position: fixed;
             top: 10px;
@@ -82,71 +135,70 @@
     </button>
 </div>
 
-<div style="max-width:400px;margin:0 auto">
+<div style="max-width: 350px; margin: 0 auto; padding: 0;">
     <div id="receipt-data">
         <div class="centered">
-            <h2 style="margin-bottom: 5px">{{ settings()->company_name }}</h2>
-
-            <p style="font-size: 11px;line-height: 15px;margin-top: 0">
-                {{ settings()->company_email }}, {{ settings()->company_phone }}
-                <br>{{ settings()->company_address }}
+            <h2 style="margin: 0 0 2px 0;">{{ settings()->company_name }}</h2>
+            <p style="font-size: 10px; line-height: 12px; margin: 0; padding: 0;">
+                {{ settings()->company_email }}, {{ settings()->company_phone }}<br>{{ settings()->company_address }}
             </p>
         </div>
-        <p>
+        <p style="font-size: 11px; line-height: 13px; margin: 3px 0; padding: 0;">
             Date: {{ \Carbon\Carbon::parse($sale->date)->format('d M, Y') }}<br>
-            Reference: {{ $sale->reference }}<br>
-            Name: {{ $sale->customer_name ?? 'Walk-in Customer' }}
+            Ref: {{ $sale->reference }}<br>
+            @if($sale->customer_id)
+            Name: {{ $sale->customer_name }}
+            @endif
         </p>
         <table class="table-data">
             <tbody>
             @foreach($sale->saleDetails as $saleDetail)
                 <tr>
-                    <td colspan="2">
-                        {{ $saleDetail->product->product_name }}
-                        ({{ $saleDetail->quantity }} x {{ format_currency($saleDetail->price) }})
+                    <td colspan="2" style="padding: 2px 0;">
+                        {{ $saleDetail->product->product_name }}<br>
+                        <span style="font-size: 10px;">({{ $saleDetail->quantity }} x {{ format_currency($saleDetail->price) }})</span>
                     </td>
-                    <td style="text-align:right;vertical-align:bottom">{{ format_currency($saleDetail->sub_total) }}</td>
+                    <td style="text-align: right; padding: 2px 0;">{{ format_currency($saleDetail->sub_total) }}</td>
                 </tr>
             @endforeach
-
             @if($sale->tax_percentage)
                 <tr>
-                    <th colspan="2" style="text-align:left">Tax ({{ $sale->tax_percentage }}%)</th>
-                    <th style="text-align:right">{{ format_currency($sale->tax_amount) }}</th>
+                    <th colspan="2" style="text-align: left; padding: 2px 0;">Tax ({{ $sale->tax_percentage }}%)</th>
+                    <th style="text-align: right; padding: 2px 0;">{{ format_currency($sale->tax_amount) }}</th>
                 </tr>
             @endif
             @if($sale->discount_percentage)
                 <tr>
-                    <th colspan="2" style="text-align:left">Discount ({{ $sale->discount_percentage }}%)</th>
-                    <th style="text-align:right">{{ format_currency($sale->discount_amount) }}</th>
+                    <th colspan="2" style="text-align: left; padding: 2px 0;">Discount ({{ $sale->discount_percentage }}%)</th>
+                    <th style="text-align: right; padding: 2px 0;">{{ format_currency($sale->discount_amount) }}</th>
                 </tr>
             @endif
             @if($sale->shipping_amount)
                 <tr>
-                    <th colspan="2" style="text-align:left">Shipping</th>
-                    <th style="text-align:right">{{ format_currency($sale->shipping_amount) }}</th>
+                    <th colspan="2" style="text-align: left; padding: 2px 0;">Shipping</th>
+                    <th style="text-align: right; padding: 2px 0;">{{ format_currency($sale->shipping_amount) }}</th>
                 </tr>
             @endif
-            <tr>
-                <th colspan="2" style="text-align:left">Grand Total</th>
-                <th style="text-align:right">{{ format_currency($sale->total_amount) }}</th>
+            <tr style="border-top: 1px solid #000; font-weight: bold;">
+                <th colspan="2" style="text-align: left; padding: 2px 0;">Total</th>
+                <th style="text-align: right; padding: 2px 0;">{{ format_currency($sale->total_amount) }}</th>
             </tr>
             </tbody>
         </table>
-        <table>
+        <table style="margin-top: 3px;">
             <tbody>
-                <tr style="background-color:#ddd;">
-                    <td class="centered" style="padding: 5px;">
-                        Paid By: {{ $sale->payment_method }}
+                <tr style="background-color: #e0e0e0;">
+                    <td class="centered" style="padding: 3px; font-size: 10px;">
+                        Paid: {{ $sale->payment_method }}
                     </td>
-                    <td class="centered" style="padding: 5px;">
-                        Amount: {{ format_currency($sale->paid_amount) }}
+                    <td class="centered" style="padding: 3px; font-size: 10px;">
+                        {{ format_currency($sale->paid_amount) }}
                     </td>
                 </tr>
                 <tr style="border-bottom: 0;">
-                    <td class="centered" colspan="3">
-                        <div style="margin-top: 10px;">
-                            {!! \Milon\Barcode\Facades\DNS1DFacade::getBarcodeSVG($sale->reference, 'C128', 1, 25, 'black', false) !!}
+                    <td class="centered" colspan="2" style="padding: 3px 0;">
+                        <div style="margin-top: 3px; margin-bottom: 0;">
+                            {!! \Milon\Barcode\Facades\DNS1DFacade::getBarcodeSVG($sale->reference, 'C128', 0.8, 20, 'black', false) !!}
                         </div>
                     </td>
                 </tr>
@@ -156,44 +208,20 @@
 </div>
 
 <script>
-    // Auto print saat window load - hanya sekali dengan flag di sessionStorage
-    const printKey = 'print_' + window.location.pathname + '_' + (new URLSearchParams(window.location.search).get('id') || '');
-    let hasPrinted = false;
+    // No auto-print in template
+    // Print is handled by openPrintWindow() from parent window (main-js.blade.php)
+    // This prevents double print dialogs
     
-    // Hanya auto-print jika dibuka dari popup dan belum pernah print
-    if (window.opener) {
-        const stored = sessionStorage.getItem(printKey);
-        if (!stored) {
-            sessionStorage.setItem(printKey, 'true');
-            hasPrinted = true;
-            window.addEventListener('load', function() {
-                setTimeout(function() {
-                    window.print();
-                }, 500);
-            });
-        }
-    }
-    
-    // Detect saat print dialog ditutup - hanya sekali
+    // Auto close this window when parent closes or after print
     let afterPrintHandled = false;
     window.addEventListener('afterprint', function() {
         if (!afterPrintHandled) {
             afterPrintHandled = true;
-            // Clear sessionStorage setelah print
-            sessionStorage.removeItem(printKey);
-            // Tutup window setelah print selesai (jika dibuka dari popup)
             setTimeout(function() {
                 if (window.opener) {
                     window.close();
                 }
             }, 1000);
-        }
-    });
-    
-    // Prevent duplicate print jika user cancel dan focus kembali
-    window.addEventListener('focus', function() {
-        if (sessionStorage.getItem(printKey) === 'true') {
-            return;
         }
     });
 </script>

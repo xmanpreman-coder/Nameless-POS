@@ -298,82 +298,101 @@
     </li>
 <?php endif; ?>
 
-<!-- Scanner Module -->
-<li class="c-sidebar-nav-item c-sidebar-nav-dropdown <?php echo e(request()->routeIs('scanner.*') ? 'c-show' : ''); ?>">
-    <a class="c-sidebar-nav-link c-sidebar-nav-dropdown-toggle" href="#">
-        <i class="c-sidebar-nav-icon bi bi-upc-scan" style="line-height: 1;"></i> Barcode Scanner
-    </a>
-    <ul class="c-sidebar-nav-dropdown-items">
-        <li class="c-sidebar-nav-item">
-            <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('scanner.index') ? 'c-active' : ''); ?>" href="<?php echo e(route('scanner.index')); ?>">
-                <i class="c-sidebar-nav-icon bi bi-speedometer2" style="line-height: 1;"></i> Scanner Dashboard
-            </a>
-        </li>
-        <li class="c-sidebar-nav-item">
-            <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('scanner.scan') ? 'c-active' : ''); ?>" href="<?php echo e(route('scanner.scan')); ?>">
-                <i class="c-sidebar-nav-icon bi bi-camera" style="line-height: 1;"></i> Start Scanning
-            </a>
-        </li>
-        <li class="c-sidebar-nav-item">
-            <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('scanner.test-camera') ? 'c-active' : ''); ?>" href="<?php echo e(route('scanner.test-camera')); ?>">
-                <i class="c-sidebar-nav-icon bi bi-camera-video" style="line-height: 1;"></i> Test Camera
-            </a>
-        </li>
-        <li class="c-sidebar-nav-item">
-            <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('scanner.external-setup') ? 'c-active' : ''); ?>" href="<?php echo e(route('scanner.external-setup')); ?>">
-                <i class="c-sidebar-nav-icon bi bi-phone" style="line-height: 1;"></i> External Scanner Setup
-            </a>
-        </li>
-    </ul>
-</li>
-
-<?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('access_currencies|access_settings')): ?>
-    <li class="c-sidebar-nav-item c-sidebar-nav-dropdown <?php echo e(request()->routeIs('currencies*') || request()->routeIs('units*') ? 'c-show' : ''); ?>">
+<?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('access_currencies|access_settings|access_scanner')): ?>
+    <li class="c-sidebar-nav-item c-sidebar-nav-dropdown <?php echo e(request()->routeIs('currencies*') || request()->routeIs('units*') || request()->routeIs('settings*') || request()->routeIs('printer-settings*') || request()->routeIs('thermal-printer*') || request()->routeIs('scanner.*') ? 'c-show' : ''); ?>">
         <a class="c-sidebar-nav-link c-sidebar-nav-dropdown-toggle" href="#">
-            <i class="c-sidebar-nav-icon bi bi-gear" style="line-height: 1;"></i> Settings
+            <i class="c-sidebar-nav-icon bi bi-gear" style="line-height: 1;"></i> Configuration
         </a>
-        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('access_units')): ?>
-            <ul class="c-sidebar-nav-dropdown-items">
+        <ul class="c-sidebar-nav-dropdown-items">
+            <!-- General Settings Section -->
+            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('access_settings')): ?>
+                <li class="c-sidebar-nav-item">
+                    <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('settings*') ? 'c-active' : ''); ?>" href="<?php echo e(route('settings.index')); ?>">
+                        <i class="c-sidebar-nav-icon bi bi-sliders" style="line-height: 1;"></i> General Settings
+                    </a>
+                </li>
+            <?php endif; ?>
+            
+            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('access_currencies')): ?>
+                <li class="c-sidebar-nav-item">
+                    <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('currencies*') ? 'c-active' : ''); ?>" href="<?php echo e(route('currencies.index')); ?>">
+                        <i class="c-sidebar-nav-icon bi bi-cash-stack" style="line-height: 1;"></i> Currencies
+                    </a>
+                </li>
+            <?php endif; ?>
+            
+            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('access_units')): ?>
                 <li class="c-sidebar-nav-item">
                     <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('units*') ? 'c-active' : ''); ?>" href="<?php echo e(route('units.index')); ?>">
                         <i class="c-sidebar-nav-icon bi bi-calculator" style="line-height: 1;"></i> Units
                     </a>
                 </li>
-            </ul>
-        <?php endif; ?>
-        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('access_currencies')): ?>
-        <ul class="c-sidebar-nav-dropdown-items">
-            <li class="c-sidebar-nav-item">
-                <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('currencies*') ? 'c-active' : ''); ?>" href="<?php echo e(route('currencies.index')); ?>">
-                    <i class="c-sidebar-nav-icon bi bi-cash-stack" style="line-height: 1;"></i> Currencies
+            <?php endif; ?>
+            
+            <!-- Printer Settings Section (Consolidated) -->
+            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('access_settings')): ?>
+                <li class="c-sidebar-nav-item c-sidebar-nav-dropdown <?php echo e(request()->routeIs('printer-settings*') || request()->routeIs('thermal-printer*') ? 'c-show' : ''); ?>">
+                    <a class="c-sidebar-nav-link c-sidebar-nav-dropdown-toggle" href="#">
+                        <i class="c-sidebar-nav-icon bi bi-printer" style="line-height: 1;"></i> Printer Management
+                    </a>
+                    <ul class="c-sidebar-nav-dropdown-items">
+                        <li class="c-sidebar-nav-item">
+                            <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('printer-settings*') ? 'c-active' : ''); ?>" href="<?php echo e(route('printer-settings.index')); ?>">
+                                <i class="c-sidebar-nav-icon bi bi-printer" style="line-height: 1;"></i> Printer Settings
+                            </a>
+                        </li>
+                        <li class="c-sidebar-nav-item">
+                            <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('thermal-printer*') ? 'c-active' : ''); ?>" href="<?php echo e(route('thermal-printer.index')); ?>">
+                                <i class="c-sidebar-nav-icon bi bi-receipt" style="line-height: 1;"></i> Thermal Printers
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            <?php endif; ?>
+            
+            <!-- Scanner Settings Section (Consolidated) -->
+            <li class="c-sidebar-nav-item c-sidebar-nav-dropdown <?php echo e(request()->routeIs('scanner.*') ? 'c-show' : ''); ?>">
+                <a class="c-sidebar-nav-link c-sidebar-nav-dropdown-toggle" href="#">
+                    <i class="c-sidebar-nav-icon bi bi-upc-scan" style="line-height: 1;"></i> Barcode Scanner
                 </a>
+                <ul class="c-sidebar-nav-dropdown-items">
+                    <li class="c-sidebar-nav-item">
+                        <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('scanner.index') ? 'c-active' : ''); ?>" href="<?php echo e(route('scanner.index')); ?>">
+                            <i class="c-sidebar-nav-icon bi bi-speedometer2" style="line-height: 1;"></i> Scanner Dashboard
+                        </a>
+                    </li>
+                    <li class="c-sidebar-nav-item">
+                        <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('scanner.scan') ? 'c-active' : ''); ?>" href="<?php echo e(route('scanner.scan')); ?>">
+                            <i class="c-sidebar-nav-icon bi bi-camera" style="line-height: 1;"></i> Start Scanning
+                        </a>
+                    </li>
+                    <li class="c-sidebar-nav-item">
+                        <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('scanner.test-camera') ? 'c-active' : ''); ?>" href="<?php echo e(route('scanner.test-camera')); ?>">
+                            <i class="c-sidebar-nav-icon bi bi-camera-video" style="line-height: 1;"></i> Test Camera
+                        </a>
+                    </li>
+                    <li class="c-sidebar-nav-item">
+                        <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('scanner.external-setup') ? 'c-active' : ''); ?>" href="<?php echo e(route('scanner.external-setup')); ?>">
+                            <i class="c-sidebar-nav-icon bi bi-phone" style="line-height: 1;"></i> External Setup
+                        </a>
+                    </li>
+                    <li class="c-sidebar-nav-item">
+                        <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('scanner.settings') ? 'c-active' : ''); ?>" href="<?php echo e(route('scanner.settings')); ?>">
+                            <i class="c-sidebar-nav-icon bi bi-sliders" style="line-height: 1;"></i> Scanner Settings
+                        </a>
+                    </li>
+                </ul>
             </li>
+            
+            <!-- System Section -->
+            <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('access_settings')): ?>
+                <li class="c-sidebar-nav-item">
+                    <button class="c-sidebar-nav-link" id="backup-database-button" type="button" style="border: none; background: none; text-align: left;">
+                        <i class="c-sidebar-nav-icon bi bi-database-down" style="line-height: 1;"></i> Backup Database
+                    </button>
+                </li>
+            <?php endif; ?>
         </ul>
-        <?php endif; ?>
-        <?php if (app(\Illuminate\Contracts\Auth\Access\Gate::class)->check('access_settings')): ?>
-        <ul class="c-sidebar-nav-dropdown-items">
-            <li class="c-sidebar-nav-item">
-                <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('settings*') ? 'c-active' : ''); ?>" href="<?php echo e(route('settings.index')); ?>">
-                    <i class="c-sidebar-nav-icon bi bi-sliders" style="line-height: 1;"></i> General Settings
-                </a>
-            </li>
-            <li class="c-sidebar-nav-item">
-                <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('printer-settings*') ? 'c-active' : ''); ?>" href="<?php echo e(route('printer-settings.index')); ?>">
-                    <i class="c-sidebar-nav-icon bi bi-printer" style="line-height: 1;"></i> Printer Settings
-                </a>
-            </li>
-            <li class="c-sidebar-nav-item">
-                <a class="c-sidebar-nav-link <?php echo e(request()->routeIs('scanner.settings') ? 'c-active' : ''); ?>" href="<?php echo e(route('scanner.settings')); ?>">
-                    <i class="c-sidebar-nav-icon bi bi-upc-scan" style="line-height: 1;"></i> Scanner Settings
-                </a>
-            </li>
-            <li class="c-sidebar-nav-item">
-                <button class="c-sidebar-nav-link" id="backup-database-button" type="button" style="border: none; background: none; text-align: left;">
-                    <i class="c-sidebar-nav-icon bi bi-database-down" style="line-height: 1;"></i> Backup Database
-                </button>
-            </li>
-        </ul>
-        <?php endif; ?>
     </li>
 <?php endif; ?>
 <?php /**PATH D:\project warnet\Nameless\resources\views/layouts/menu.blade.php ENDPATH**/ ?>

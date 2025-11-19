@@ -33,7 +33,7 @@
                     <tr>
                         <td class="align-middle">{{ $key + 1 }}</td>
                         <td class="align-middle">{{ $product['product_name'] ?? $product['product']['product_name'] }}</td>
-                        <td class="align-middle">{{ $product['product_sku'] ?? $product['product']['product_sku'] ?? $product['product_code'] ?? $product['product']['product_code'] ?? 'N/A' }}</td>
+                        <td class="align-middle">{{ $product['product_sku'] ?? $product['product']['product_sku'] ?? 'N/A' }}</td>
                         <td class="align-middle text-center">
                             <span class="badge badge-info">
                                 {{ $product['product_quantity'] ?? $product['product']['product_quantity'] }} {{ $product['product_unit'] ?? $product['product']['product_unit'] }}

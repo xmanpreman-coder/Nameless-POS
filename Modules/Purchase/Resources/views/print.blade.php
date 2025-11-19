@@ -92,7 +92,7 @@
                                     <td class="align-middle">
                                         {{ $item->product_name }} <br>
                                         <span class="badge badge-success">
-                                                {{ $item->product_code }}
+                                                {{ $item->product_sku }}
                                             </span>
                                     </td>
 

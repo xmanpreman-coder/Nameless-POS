@@ -25,3 +25,10 @@ Route::middleware(['auth:api'])->group(function () {
     Route::post('/user-printer-preferences', [App\Http\Controllers\Api\PrinterController::class, 'saveUserPreferences']);
     Route::get('/printer-profiles', [App\Http\Controllers\Api\PrinterController::class, 'getPrinterProfiles']);
 });
+
+// Thermal Printer API Routes  
+Route::middleware(['auth:api'])->prefix('thermal')->name('api.thermal.')->group(function () {
+    Route::post('/print-sale', [App\Http\Controllers\Api\ThermalPrintController::class, 'printSale'])->name('print-sale');
+    Route::post('/print-test/{printer?}', [App\Http\Controllers\Api\ThermalPrintController::class, 'printTest'])->name('print-test');
+    Route::post('/open-cash-drawer/{printer?}', [App\Http\Controllers\Api\ThermalPrintController::class, 'openCashDrawer'])->name('open-cash-drawer');
+});

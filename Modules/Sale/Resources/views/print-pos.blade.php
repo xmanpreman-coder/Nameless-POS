@@ -8,53 +8,113 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         * {
-            font-size: 12px;
-            line-height: 18px;
-            font-family: 'Ubuntu', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
+        
+        body {
+            font-family: 'Courier New', 'Liberation Mono', monospace;
+            font-size: 10px;
+            line-height: 12px;
+            color: #000;
+            background: white;
+            margin: 0;
+            padding: 0;
+        }
+        
         h2 {
-            font-size: 16px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 3px;
         }
-        td,
-        th,
-        tr,
-        table {
+        
+        td, th, tr, table {
             border-collapse: collapse;
         }
-        tr {border-bottom: 1px dashed #ddd;}
-        td,th {padding: 7px 0;width: 50%;}
+        
+        tr {
+            border-bottom: 1px dashed #000;
+        }
+        
+        td, th {
+            padding: 2px 0;
+            font-size: 9px;
+            line-height: 11px;
+        }
 
-        table {width: 100%;}
-        tfoot tr th:first-child {text-align: left;}
+        table {
+            width: 100%;
+            margin-bottom: 4px;
+        }
+        
+        tfoot tr th:first-child {
+            text-align: left;
+        }
 
         .centered {
             text-align: center;
             align-content: center;
         }
-        small{font-size:11px;}
+        
+        small {
+            font-size: 8px;
+        }
 
         @media print {
-            * {
-                font-size:12px;
-                line-height: 20px;
+            @page {
+                size: 80mm auto; /* 80mm width, auto height for thermal paper */
+                margin: 0mm; /* No margins for thermal printing */
+                padding: 0mm;
             }
-            td,th {padding: 5px 0;}
+            
+            * {
+                font-size: 9px;
+                line-height: 11px;
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            body {
+                margin: 0;
+                padding: 2mm;
+                background: white !important;
+                -webkit-print-color-adjust: exact;
+            }
+            
+            td, th {
+                padding: 1px 0;
+                font-size: 8px;
+                line-height: 10px;
+            }
+            
             .hidden-print {
                 display: none !important;
             }
+            
+            /* Remove problematic page break rules */
             tbody::after {
-                content: '';
-                display: block;
-                page-break-after: always;
-                page-break-inside: auto;
+                content: none;
+                display: none;
+            }
+            
+            /* Prevent page breaks inside receipt */
+            .receipt-container {
+                page-break-inside: avoid;
+                page-break-after: avoid;
                 page-break-before: avoid;
+            }
+            
+            table, tr, td, th {
+                page-break-inside: avoid;
             }
         }
     </style>
 </head>
 <body>
 
-<div style="max-width:400px;margin:0 auto">
+<div class="receipt-container" style="width:72mm;max-width:72mm;margin:0 auto;padding:2mm">
     <div id="receipt-data">
         <div class="centered">
             <h2 style="margin-bottom: 5px">{{ settings()->company_name }}</h2>
@@ -67,7 +127,9 @@
         <p>
             Date: {{ \Carbon\Carbon::parse($sale->date)->format('d M, Y') }}<br>
             Reference: {{ $sale->reference }}<br>
+            @if($sale->customer_id)
             Name: {{ $sale->customer_name }}
+            @endif
         </p>
         <table class="table-data">
             <tbody>

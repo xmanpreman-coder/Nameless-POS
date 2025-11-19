@@ -116,7 +116,7 @@ class SaleController extends Controller
                     'sale_id' => $sale->id,
                     'product_id' => $cart_item->id,
                     'product_name' => $cart_item->name,
-                    'product_code' => $cart_item->options->code,
+                    'product_sku' => $cart_item->options->code,
                     'quantity' => $cart_item->qty,
                     'price' => $cart_item->price * 100,
                     'unit_price' => $cart_item->options->unit_price * 100,
@@ -156,7 +156,10 @@ class SaleController extends Controller
     public function show(Sale $sale) {
         abort_if(Gate::denies('show_sales'), 403);
 
-        $customer = Customer::findOrFail($sale->customer_id);
+        $customer = null;
+        if ($sale->customer_id) {
+            $customer = Customer::find($sale->customer_id);
+        }
 
         return view('sale::show', compact('sale', 'customer'));
     }
@@ -182,7 +185,7 @@ class SaleController extends Controller
                     'product_discount' => $sale_detail->product_discount_amount,
                     'product_discount_type' => $sale_detail->product_discount_type,
                     'sub_total'   => $sale_detail->sub_total,
-                    'code'        => $sale_detail->product_code,
+                    'code'        => $sale_detail->product_sku,
                     'stock'       => Product::findOrFail($sale_detail->product_id)->product_quantity,
                     'product_tax' => $sale_detail->product_tax_amount,
                     'unit_price'  => $sale_detail->unit_price
@@ -241,7 +244,7 @@ class SaleController extends Controller
                     'sale_id' => $sale->id,
                     'product_id' => $cart_item->id,
                     'product_name' => $cart_item->name,
-                    'product_code' => $cart_item->options->code,
+                    'product_sku' => $cart_item->options->code,
                     'quantity' => $cart_item->qty,
                     'price' => $cart_item->price * 100,
                     'unit_price' => $cart_item->options->unit_price * 100,

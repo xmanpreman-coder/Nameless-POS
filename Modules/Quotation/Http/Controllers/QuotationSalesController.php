@@ -32,7 +32,7 @@ class QuotationSalesController extends Controller
                     'product_discount' => $quotation_detail->product_discount_amount,
                     'product_discount_type' => $quotation_detail->product_discount_type,
                     'sub_total'   => $quotation_detail->sub_total,
-                    'code'        => $quotation_detail->product_code,
+                    'code'        => $quotation_detail->product_sku,
                     'stock'       => Product::findOrFail($quotation_detail->product_id)->product_quantity,
                     'product_tax' => $quotation_detail->product_tax_amount,
                     'unit_price'  => $quotation_detail->unit_price

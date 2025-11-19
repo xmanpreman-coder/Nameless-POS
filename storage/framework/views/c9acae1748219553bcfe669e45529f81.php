@@ -23,8 +23,8 @@
         <a class="c-header-nav-link" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
             <i class="bi bi-bell" style="font-size: 20px;"></i>
             <span class="badge badge-pill badge-danger">
-            <?php
-                $low_quantity_products = \Modules\Product\Entities\Product::select('id', 'product_quantity', 'product_stock_alert', 'product_code')->whereColumn('product_quantity', '<=', 'product_stock_alert')->get();
+                <?php
+                $low_quantity_products = \Modules\Product\Entities\Product::select('id', 'product_quantity', 'product_stock_alert', 'product_sku')->whereColumn('product_quantity', '<=', 'product_stock_alert')->get();
                 echo $low_quantity_products->count();
             ?>
             </span>
@@ -33,9 +33,9 @@
             <div class="dropdown-header bg-light">
                 <strong><?php echo e($low_quantity_products->count()); ?> Notifications</strong>
             </div>
-            <?php $__empty_1 = true; $__currentLoopData = $low_quantity_products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                <?php $__empty_1 = true; $__currentLoopData = $low_quantity_products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
                 <a class="dropdown-item" href="<?php echo e(route('products.show', $product->id)); ?>">
-                    <i class="bi bi-hash mr-1 text-primary"></i> Product: "<?php echo e($product->product_code); ?>" is low in quantity!
+                    <i class="bi bi-hash mr-1 text-primary"></i> Product: "<?php echo e($product->product_sku ?? 'N/A'); ?>" is low in quantity!
                 </a>
             <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
                 <a class="dropdown-item" href="#">

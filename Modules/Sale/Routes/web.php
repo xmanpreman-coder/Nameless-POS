@@ -60,6 +60,16 @@ Route::group(['middleware' => 'auth'], function () {
         return view('sale::print-view', compact('sale'));
     })->name('sales.pos.print');
 
+    // Thermal 80mm print view (optimized for thermal printers)
+    Route::get('/sales/thermal/print/{id}', function ($id) {
+        $sale = \Modules\Sale\Entities\Sale::findOrFail($id);
+        $customer = null;
+        if ($sale->customer_id) {
+            $customer = \Modules\People\Entities\Customer::find($sale->customer_id);
+        }
+        return view('sale::print-thermal-80mm', compact('sale', 'customer'));
+    })->name('sales.thermal.print');
+
     //Sales
     Route::resource('sales', 'SaleController');
     Route::get('/sales/export-csv', 'SaleController@exportCsv')->name('sales.export-csv');
