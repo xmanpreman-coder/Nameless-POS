@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Modules\Upload\Entities\Upload;
 use Modules\User\Rules\MatchCurrentPassword;
 
 class ProfileController extends Controller
@@ -21,29 +20,32 @@ class ProfileController extends Controller
     public function update(Request $request) {
         $request->validate([
             'name'  => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . auth()->id()
+            'email' => 'required|email|unique:users,email,' . auth()->id(),
+            'image' => 'nullable|image|mimes:png,jpeg,jpg|max:2048'
         ]);
 
-        auth()->user()->update([
+        $user = auth()->user();
+
+        $user->update([
             'name'  => $request->name,
             'email' => $request->email
         ]);
 
-        if ($request->has('image')) {
-            if ($request->has('image')) {
-                $tempFile = Upload::where('folder', $request->image)->first();
-
-                if (auth()->user()->getFirstMedia('avatars')) {
-                    auth()->user()->getFirstMedia('avatars')->delete();
-                }
-
-                if ($tempFile) {
-                    auth()->user()->addMedia(Storage::path('temp/' . $request->image . '/' . $tempFile->filename))->toMediaCollection('avatars');
-
-                    Storage::deleteDirectory('temp/' . $request->image);
-                    $tempFile->delete();
-                }
+        // Handle image upload - store to media library
+        if ($request->hasFile('image')) {
+            // Delete existing avatar if any
+            if ($user->getFirstMedia('avatars')) {
+                $user->getFirstMedia('avatars')->delete();
             }
+
+            // Add new media file to avatars collection
+            $user->addMediaFromRequest('image')
+                ->toMediaCollection('avatars');
+
+            \Log::info('Profile Image Updated', [
+                'user_id' => $user->id,
+                'media_count' => $user->getMedia('avatars')->count()
+            ]);
         }
 
         toast('Profile Updated!', 'success');

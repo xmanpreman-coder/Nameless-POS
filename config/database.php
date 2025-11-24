@@ -2,6 +2,9 @@
 
 use Illuminate\Support\Str;
 
+// Ensure relative sqlite path in .env is resolved to project base path
+// so users don't need to set a drive letter on Windows.
+// If DB_DATABASE is already absolute, leave it unchanged.
 return [
 
     /*
@@ -35,13 +38,23 @@ return [
 
     'connections' => [
 
-        'sqlite' => [
-            'driver' => 'sqlite',
-            'url' => env('DATABASE_URL'),
-            'database' => env('DB_DATABASE', database_path('database.sqlite')),
-            'prefix' => '',
-            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-        ],
+        'sqlite' => (function () {
+            $database = env('DB_DATABASE', database_path('database.sqlite'));
+
+            // If database path is relative (doesn't start with /, \\ or X:\\),
+            // resolve it against the project base path so no drive letter is required.
+            if ($database && !preg_match('#^(?:/|\\\\|[A-Za-z]:\\\\)#', $database)) {
+                $database = base_path($database);
+            }
+
+            return [
+                'driver' => 'sqlite',
+                'url' => env('DATABASE_URL'),
+                'database' => $database,
+                'prefix' => '',
+                'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+            ];
+        })(),
 
         'mysql' => [
             'driver' => 'mysql',

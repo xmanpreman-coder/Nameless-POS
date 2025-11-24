@@ -52,7 +52,7 @@ class UploadController extends Controller
                 'path' => storage_path('app/temp/' . $folder . '/' . $filename)
             ]);
 
-            return $folder;
+            return response($folder, 200)->header('Content-Type', 'text/plain');
         }
 
         return response()->json(['error' => 'No file uploaded'], 400);

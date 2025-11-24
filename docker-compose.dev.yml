@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: nameless-pos
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/app                          # Mount seluruh project
+      - /app/vendor                     # Persist composer packages
+      - ./storage:/app/storage          # Persist storage
+      - ./database:/app/database        # Persist database
+      - ./bootstrap/cache:/app/bootstrap/cache
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_URL=http://localhost:8000
+      - DB_CONNECTION=sqlite
+      - DB_DATABASE=/app/database/database.sqlite
+    networks:
+      - nameless-network
+
+  # Optional: PHPMyAdmin untuk inspect database
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: nameless-phpmyadmin
+    ports:
+      - "8080:80"
+    environment:
+      - PMA_ARBITRARY=1
+    networks:
+      - nameless-network
+
+networks:
+  nameless-network:
+    driver: bridge

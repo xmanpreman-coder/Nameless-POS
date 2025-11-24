@@ -17,6 +17,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/products/export-csv', 'ProductController@exportCsv')->name('products.export-csv');
     Route::get('/products/download-template', 'ProductController@downloadTemplate')->name('products.download-template');
     Route::get('/products/download-template-xlsx', 'ProductController@downloadXlsxTemplate')->name('products.download-template-xlsx');
+    Route::delete('/products/{product}/media/{media}', 'ProductController@deleteMedia')->name('products.media.delete');
     
     //Product Resource (must be after specific routes)
     Route::resource('products', 'ProductController');

@@ -1,0 +1,19 @@
+# Single Container SQLite Setup (Recommended for Warnet)
+services:
+  nameless-pos:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./database:/app/database
+      - ./storage:/app/storage
+      - ./.env:/app/.env
+    environment:
+      - DB_CONNECTION=sqlite
+      - DB_DATABASE=/app/database/database.sqlite
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

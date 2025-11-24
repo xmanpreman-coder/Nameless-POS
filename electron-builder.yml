@@ -1,0 +1,53 @@
+appId: com.nameless.pos
+productName: Nameless POS
+directories:
+  buildResources: assets
+  output: dist
+
+files:
+  - from: .
+    to: .
+    filter:
+      - "!**/.git"
+      - "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}"
+      - "!**/node_modules/*/.bin"
+      - "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}"
+      - "!.editorconfig"
+      - "!**/.editorconfig"
+      - "!**/.eslintignore"
+      - "!**/.eslintrc*"
+      - "!**/._*"
+      - "!**/*.md"
+      - "!.env"
+      - "!docker*"
+      - "!.git*"
+      - "!*.php"
+      - "!composer*"
+      - "!artisan"
+
+win:
+  target:
+    - nsis
+    - portable
+  certificateFile: null
+  certificatePassword: null
+  signingHashAlgorithms:
+    - sha256
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Nameless POS
+  installerIcon: assets/icon.ico
+  uninstallerIcon: assets/icon.ico
+  installerHeaderIcon: assets/icon.ico
+
+portable:
+  artifactName: ${productName}-${version}-portable.exe
+
+publish:
+  provider: github
+  owner: your-username
+  repo: nameless-pos

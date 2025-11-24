@@ -50,7 +50,10 @@
         <a class="c-header-nav-link" data-toggle="dropdown" href="#" role="button"
            aria-haspopup="true" aria-expanded="false">
             <div class="c-avatar mr-2">
-                <img class="c-avatar rounded-circle" src="<?php echo e(auth()->user()->getFirstMediaUrl('avatars')); ?>" alt="Profile Image">
+                <?php
+                    $avatarUrl = auth()->user()->getFirstMediaUrl('avatars');
+                ?>
+                <img class="c-avatar rounded-circle" src="<?php echo e($avatarUrl ?: asset('images/default-avatar.svg')); ?>" alt="Profile Image" onerror="this.onerror=null;this.src='<?php echo e(asset('images/default-avatar.svg')); ?>';">
             </div>
             <div class="d-flex flex-column">
                 <span class="font-weight-bold"><?php echo e(auth()->user()->name); ?></span>

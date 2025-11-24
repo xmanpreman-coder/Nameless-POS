@@ -1,0 +1,49 @@
+FROM php:8.2-apache
+
+# Install dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    unzip \
+    sqlite3 \
+    libsqlite3-dev \
+    libzip-dev \
+    libgd-dev \
+    libexif-dev \
+    libicu-dev \
+    zip \
+    && docker-php-ext-install \
+    pdo \
+    pdo_sqlite \
+    zip \
+    gd \
+    exif \
+    intl \
+    && a2enmod rewrite \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /app
+
+# Copy project files
+COPY . .
+
+# Install PHP dependencies
+RUN composer install
+
+# Create necessary directories with permissions
+RUN mkdir -p storage/app/public storage/logs bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache \
+    && chown -R www-data:www-data /app
+
+# Configure Apache
+RUN sed -i 's|/var/www/html|/app/public|g' /etc/apache2/sites-available/000-default.conf
+
+# Expose port
+EXPOSE 80
+
+# Start Apache
+CMD ["apache2ctl", "-D", "FOREGROUND"]

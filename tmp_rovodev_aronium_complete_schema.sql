@@ -1,0 +1,541 @@
+﻿CREATE TABLE sqlite_sequence(name,seq);
+CREATE TABLE `ProductGroup` (
+	`Id`	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	`Name`	TEXT NOT NULL,
+	`ParentGroupId`	INTEGER
+, Color TEXT NOT NULL DEFAULT 'Transparent', Image BLOB, Rank INT NOT NULL DEFAULT 0);
+CREATE TABLE `FiscalItem` (
+	`PLU`	INTEGER NOT NULL,
+	`Name`	TEXT NOT NULL,
+	`VAT`	TEXT NOT NULL,
+	PRIMARY KEY(PLU)
+);
+CREATE TABLE SecurityKey (Name TEXT PRIMARY KEY, Level INTEGER);
+CREATE TABLE PaymentType (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, Name TEXT NOT NULL, Code TEXT, IsCustomerRequired INTEGER (1) NOT NULL DEFAULT (0), IsFiscal INTEGER (1) NOT NULL DEFAULT (1), IsSlipRequired INTEGER (1) NOT NULL DEFAULT (0), IsChangeAllowed INTEGER (1) NOT NULL DEFAULT (1), Ordinal INTEGER DEFAULT (0) NOT NULL, IsEnabled INTEGER (1) NOT NULL DEFAULT (1), IsQuickPayment INTEGER (1) NOT NULL DEFAULT (1), OpenCashDrawer INT (1) NOT NULL DEFAULT 1, ShortcutKey TEXT, MarkAsPaid INT(1) NOT NULL DEFAULT 1);
+CREATE TABLE Counter (Name TEXT PRIMARY KEY NOT NULL, Value INTEGER NOT NULL);
+CREATE TABLE FloorPlan (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, Name TEXT NOT NULL, Color TEXT NOT NULL DEFAULT 'Transparent');
+CREATE TABLE FloorPlanTable (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, Name TEXT NOT NULL, FloorPlanId INTEGER REFERENCES FloorPlan (Id) ON DELETE CASCADE NOT NULL, PositionX REAL NOT NULL DEFAULT (0), PositionY REAL NOT NULL DEFAULT (0), Width REAL NOT NULL, Height REAL NOT NULL, IsRound INTEGER (1) NOT NULL DEFAULT (0));
+CREATE TABLE Currency (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, Name TEXT NOT NULL, Code TEXT);
+CREATE TABLE User (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, FirstName TEXT, LastName TEXT, Username TEXT, Password TEXT NOT NULL, AccessLevel INTEGER NOT NULL DEFAULT (0), IsEnabled INT (1) NOT NULL DEFAULT 1, Email TEXT);
+CREATE TABLE Country (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, Name TEXT NOT NULL, Code TEXT);
+CREATE TABLE Customer (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, Code TEXT, Name TEXT NOT NULL, TaxNumber TEXT, Address TEXT, PostalCode TEXT, City TEXT, CountryId INTEGER REFERENCES Country (Id), DateCreated DATETIME NOT NULL DEFAULT (DATETIME('now')), DateUpdated DATETIME NOT NULL DEFAULT (DATETIME('now')), Email TEXT, PhoneNumber TEXT, IsEnabled INTEGER (1) NOT NULL DEFAULT 1, IsCustomer INTEGER (1) NOT NULL DEFAULT 1, IsSupplier INTEGER (1) NOT NULL DEFAULT 1, DueDatePeriod INT NOT NULL DEFAULT (0), StreetName TEXT, AdditionalStreetName TEXT, BuildingNumber TEXT, PlotIdentification TEXT, CitySubdivisionName TEXT, CountrySubentity TEXT, IsTaxExempt INTEGER (1) NOT NULL DEFAULT 0, PriceListId INTEGER REFERENCES PriceList (Id) ON DELETE SET NULL);
+CREATE VIEW PaymentsView AS SELECT P.DocumentId, GROUP_CONCAT(PT.Name) AS PaymentTypes FROM Payment P INNER JOIN PaymentType PT ON PT.Id = P.PaymentTypeId GROUP BY P.DocumentId
+/* PaymentsView(DocumentId,PaymentTypes) */;
+CREATE TABLE Company (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, Name TEXT NOT NULL, Address TEXT, PostalCode TEXT, City TEXT, CountryId INTEGER REFERENCES Country (Id) NOT NULL, TaxNumber TEXT, Email TEXT, PhoneNumber TEXT, Logo BLOB, BankAccountNumber TEXT, BankDetails TEXT, StreetName TEXT, AdditionalStreetName TEXT, BuildingNumber TEXT, PlotIdentification TEXT, CitySubdivisionName TEXT, CountrySubentity TEXT);
+CREATE TABLE Migration (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, Version TEXT NOT NULL, Description TEXT, FileName TEXT NOT NULL, Module TEXT, Date DATETIME);
+CREATE TABLE CustomerDiscount 
+
+(
+
+	Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+
+	CustomerId INTEGER REFERENCES Customer (Id) ON DELETE CASCADE NOT NULL, 
+
+	Type INTEGER (1) NOT NULL DEFAULT (0), 
+
+	Uid INTEGER, 
+
+	Value REAL NOT NULL DEFAULT (0), 
+
+	CONSTRAINT UK_CustomerDiscount UNIQUE (CustomerId, Type, Uid)
+
+);
+CREATE TABLE PosPrinterSettings 
+
+(
+
+	Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+
+	PrinterName TEXT NOT NULL CONSTRAINT UK_PrinterName UNIQUE, 
+
+	PaperWidth INTEGER (5) NOT NULL DEFAULT (32), 
+
+	Header TEXT, 
+
+	Footer TEXT,
+
+	FeedLines INTEGER (3) NOT NULL DEFAULT (0), 
+
+	CutPaper INTEGER(1) NOT NULL DEFAULT (1),
+
+	PrintBitmap INTEGER(1) NOT NULL DEFAULT (0)
+
+, OpenCashDrawer INT (1) NOT NULL DEFAULT 1, CashDrawerCommand TEXT, HeaderAlignment INT(1) NOT NULL DEFAULT 0, FooterAlignment INT(1) NOT NULL DEFAULT 0, IsFormattingEnabled INT(1) NOT NULL DEFAULT 1, PrinterType INT(1) NOT NULL DEFAULT 0, NumberOfCopies INT(1) NOT NULL DEFAULT 1, CodePage INTEGER NOT NULL DEFAULT -1, CharacterSet INTEGER NOT NULL DEFAULT -1);
+CREATE TABLE PosPrinterSelection
+
+(
+
+	Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+
+	Key TEXT NOT NULL CONSTRAINT UK_PrinterKey UNIQUE, 
+
+	PrinterName TEXT, 
+
+	IsEnabled INTEGER (1) NOT NULL DEFAULT (0)
+
+);
+CREATE TABLE ApplicationProperty 
+
+(
+
+	Name TEXT PRIMARY KEY NOT NULL, 
+
+	Value TEXT
+
+);
+CREATE TABLE LoyaltyCard 
+
+(
+
+	Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+
+	CustomerId INTEGER REFERENCES Customer (Id) ON DELETE CASCADE NOT NULL, 
+
+	CardNumber TEXT 
+
+);
+CREATE INDEX IX_LoyaltyCard_CustomerId ON LoyaltyCard (CustomerId);
+CREATE INDEX IX_CustomerDiscount_CustomerId ON CustomerDiscount (CustomerId);
+CREATE TABLE Promotion 
+
+(
+
+	Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+
+	Name TEXT NOT NULL, 
+
+	StartDate DATETIME,
+
+	StartTime DATETIME,
+
+	EndDate DATETIME,
+
+	EndTime DATETIME,
+
+	DaysOfWeek INTEGER NOT NULL,
+
+	IsEnabled INTEGER(1) NOT NULL DEFAULT (1)
+
+);
+CREATE TABLE PromotionItem
+
+(
+
+	Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+
+	PromotionId INTEGER REFERENCES Promotion (Id) ON DELETE CASCADE NOT NULL,
+
+	Uid INTEGER NOT NULL,
+
+	DiscountType INTEGER NOT NULL DEFAULT(0),
+
+	PriceType INTEGER NOT NULL DEFAULT(0),
+
+	Value NUMERIC NOT NULL DEFAULT(0),
+
+	IsConditional INTEGER(1) NOT NULL DEFAULT (1),
+
+	Quantity NUMERIC NOT NULL DEFAULT(0),
+
+	ConditionType INTEGER NOT NULL DEFAULT(0),
+
+	QuantityLimit NUMERIC NOT NULL DEFAULT(0)
+
+);
+CREATE TABLE Warehouse (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, Name TEXT NOT NULL);
+CREATE TABLE DocumentCategory (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, Name TEXT NOT NULL, LanguageKey TEXT);
+CREATE TABLE DocumentType 
+
+(
+
+	Id INTEGER PRIMARY KEY AUTOINCREMENT, 
+
+	Name TEXT NOT NULL, 
+
+	Code TEXT NOT NULL, 
+
+	DocumentCategoryId INTEGER REFERENCES DocumentCategory (Id) NOT NULL,
+
+	WarehouseId INTEGER REFERENCES Warehouse (Id) NOT NULL, 
+
+	StockDirection INTEGER (1) NOT NULL DEFAULT (0),
+
+	EditorType INTEGER NOT NULL DEFAULT (0),
+
+	PrintTemplate TEXT
+
+, PriceType INT NOT NULL DEFAULT (0), LanguageKey TEXT);
+CREATE TABLE Stock
+
+(
+
+	Id INTEGER PRIMARY KEY AUTOINCREMENT, 
+
+	ProductId INTEGER REFERENCES Product (Id) ON DELETE CASCADE NOT NULL,
+
+	WarehouseId INTEGER REFERENCES Warehouse (Id) ON DELETE CASCADE NOT NULL, 
+
+	Quantity NUMERIC NOT NULL
+
+);
+CREATE TABLE Document (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, Number TEXT NOT NULL, UserId INTEGER REFERENCES User (Id) NOT NULL, CustomerId INTEGER REFERENCES Customer (Id), OrderNumber TEXT, Date DATE NOT NULL, StockDate DATETIME NOT NULL, Total NUMERIC NOT NULL, IsClockedOut INTEGER (1) NOT NULL DEFAULT (0), DocumentTypeId INTEGER REFERENCES DocumentType (Id) NOT NULL, WarehouseId INTEGER REFERENCES Warehouse (Id) NOT NULL, ReferenceDocumentNumber TEXT, DateCreated DATETIME NOT NULL DEFAULT (datetime('now', 'localtime')), DateUpdated DATETIME NOT NULL DEFAULT (datetime('now', 'localtime')), InternalNote TEXT, Note TEXT, DueDate DATE, Discount NUMERIC NOT NULL DEFAULT (0), DiscountType INT NOT NULL DEFAULT (0), PaidStatus INTEGER NOT NULL DEFAULT 0, DiscountApplyRule INTEGER(1) NOT NULL DEFAULT (0), ServiceType INTEGER NOT NULL DEFAULT (0));
+CREATE TABLE Payment (Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, DocumentId INTEGER REFERENCES Document (Id) ON DELETE CASCADE NOT NULL, PaymentTypeId INTEGER REFERENCES PaymentType (Id) NOT NULL, Amount NUMERIC NOT NULL DEFAULT (0), Date DATE, UserId INTEGER NOT NULL REFERENCES User (Id) DEFAULT 0, ZReportId INTEGER REFERENCES ZReport (Id), DateCreated DATETIME NOT NULL DEFAULT 0);
+CREATE TABLE Barcode (Id INTEGER PRIMARY KEY AUTOINCREMENT, ProductId INTEGER NOT NULL REFERENCES Product (Id) ON DELETE CASCADE, Value TEXT NOT NULL);
+CREATE INDEX IX_Barcode_Product ON Barcode (ProductId);
+CREATE TABLE ZReport (Id INTEGER PRIMARY KEY AUTOINCREMENT, Number INTEGER NOT NULL, FromDocumentId INTEGER NOT NULL, ToDocumentId INTEGER NOT NULL, DateCreated DATETIME NOT NULL DEFAULT (datetime('now', 'localtime')));
+CREATE INDEX IX_Stock_ProductId ON Stock (ProductId);
+CREATE TABLE PosOrder 
+
+(
+
+    Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+
+    UserId INTEGER REFERENCES User (Id) NOT NULL, 
+
+    Number TEXT NOT NULL, 
+
+    Discount NUMERIC NOT NULL DEFAULT (0), 
+
+    DiscountType INTEGER NOT NULL DEFAULT (0),
+
+    Total NUMERIC
+
+, CustomerId INTEGER REFERENCES Customer (Id) ON DELETE SET NULL, ServiceType INTEGER NOT NULL DEFAULT (0));
+CREATE TABLE PosOrderItem (
+
+    Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+
+    PosOrderId INTEGER REFERENCES PosOrder (Id) ON DELETE CASCADE NOT NULL,  
+
+    ProductId INTEGER REFERENCES Product (Id) NOT NULL, 
+
+    RoundNumber INTEGER NOT NULL DEFAULT (0), 
+
+    Quantity NUMERIC NOT NULL, 
+
+    Price NUMERIC NOT NULL, 
+
+    IsLocked INTEGER (1) NOT NULL DEFAULT (0),
+
+    Discount NUMERIC NOT NULL DEFAULT (0), 
+
+    DiscountType INT NOT NULL DEFAULT (0), 
+
+    IsFeatured INT (1) NOT NULL DEFAULT 0,  
+
+    VoidedBy INTEGER REFERENCES User (Id), 
+
+    Comment TEXT, 
+
+    DateCreated DATE NOT NULL
+
+, Bundle TEXT, DiscountAppliedType INTEGER NOT NULL DEFAULT (0));
+CREATE VIEW DocumentItemPriceView AS SELECT 
+
+    DI.Id AS DocumentItemId,
+
+    -- If cart discount exist
+
+    CASE WHEN D.Discount > 0 THEN
+
+        -- Percentage discount on cart
+
+        CASE WHEN D.DiscountType = 0 THEN
+
+            -- Calculate cart percentage discount on previously calculated price with discount
+
+            (DI.PriceAfterDiscount / ROUND(100,2)) * (ROUND(100,2) - D.Discount)
+
+        ELSE 
+
+            -- Cart fixed discount subtracted from price with tax
+
+            DI.PriceAfterDiscount - (((D.Discount * ROUND(DI.Total,2)) / (ROUND(D.Total,2) + D.Discount)) / DI.Quantity)
+
+        END
+
+    ELSE 
+
+        DI.PriceAfterDiscount
+
+    END 
+
+    AS Price
+
+FROM     DocumentItem DI INNER JOIN
+
+         Document D ON D.Id = DI.DocumentId
+/* DocumentItemPriceView(DocumentItemId,Price) */;
+CREATE UNIQUE INDEX UX_UserEmail ON User(Email);
+CREATE TABLE PosPrinterSelectionSettings (
+
+  Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+
+  PosPrinterSelectionId INTEGER REFERENCES PosPrinterSelection (Id) ON DELETE CASCADE NOT NULL, 
+
+  PaperWidth INTEGER (5) NOT NULL DEFAULT (32), 
+
+  Header TEXT, 
+
+  Footer TEXT, 
+
+  FeedLines INTEGER (3) NOT NULL DEFAULT (0), 
+
+  CutPaper INTEGER (1) NOT NULL DEFAULT (1), 
+
+  PrintBitmap INTEGER (1) NOT NULL DEFAULT (0), 
+
+  OpenCashDrawer INT (1) NOT NULL DEFAULT 1, 
+
+  CashDrawerCommand TEXT, 
+
+  HeaderAlignment INT (1) NOT NULL DEFAULT 0, 
+
+  FooterAlignment INT (1) NOT NULL DEFAULT 0, 
+
+  IsFormattingEnabled INT (1) NOT NULL DEFAULT 1, 
+
+  PrinterType INT (1) NOT NULL DEFAULT 0, 
+
+  NumberOfCopies INT (1) NOT NULL DEFAULT 1, 
+
+  CodePage INTEGER NOT NULL DEFAULT -1, 
+
+  CharacterSet INTEGER NOT NULL DEFAULT -1,
+
+  Margin INTEGER NOT NULL DEFAULT 0
+
+, LeftMargin NUMERIC NOT NULL DEFAULT 0, TopMargin NUMERIC NOT NULL DEFAULT 0, RightMargin NUMERIC NOT NULL DEFAULT 0, BottomMargin NUMERIC NOT NULL DEFAULT 0, PrintBarcode INTEGER (1) NOT NULL DEFAULT 1, FontName TEXT, FontSizePercent NUMERIC NOT NULL DEFAULT 100.0, PrintLogoFullWidth INTEGER (1) NOT NULL DEFAULT 0);
+CREATE TABLE StartingCash (
+
+  Id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE, 
+
+  UserId INTEGER REFERENCES User (Id) NOT NULL, 
+
+  Amount NUMERIC NOT NULL, 
+
+  Description TEXT, 
+
+  StartingCashType INTEGER NOT NULL DEFAULT (0), 
+
+  ZReportNumber INTEGER, 
+
+  DateCreated DATETIME NOT NULL
+
+);
+CREATE TABLE ProductComment (Id INTEGER PRIMARY KEY AUTOINCREMENT, ProductId INTEGER REFERENCES Product (Id) ON DELETE CASCADE NOT NULL, Comment TEXT NOT NULL);
+CREATE TABLE Tax (Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, Name TEXT NOT NULL, Rate NUMERIC NOT NULL, Code TEXT, IsFixed INTEGER (1) NOT NULL DEFAULT 0, IsTaxOnTotal INTEGER (1) NOT NULL DEFAULT 0, IsEnabled INTEGER (1) NOT NULL DEFAULT 1);
+CREATE TABLE ProductTax (ProductId INTEGER REFERENCES Product (Id) ON DELETE CASCADE NOT NULL, TaxId INTEGER NOT NULL REFERENCES Tax (Id), PRIMARY KEY (ProductId, TaxId));
+CREATE TABLE DocumentItemTax (DocumentItemId INTEGER REFERENCES  DocumentItem (Id) ON DELETE CASCADE NOT NULL, TaxId INTEGER NOT NULL REFERENCES Tax (Id), Amount REAL NOT NULL DEFAULT 0, PRIMARY KEY (DocumentItemId, TaxId));
+CREATE TABLE Product (
+
+	Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
+
+	,ProductGroupId INTEGER REFERENCES ProductGroup(Id) ON DELETE CASCADE
+
+	,Name TEXT NOT NULL
+
+	,Code TEXT
+
+	,PLU INTEGER
+
+	,MeasurementUnit TEXT
+
+	,Price REAL NOT NULL DEFAULT 0
+
+	,IsTaxInclusivePrice INTEGER (1) DEFAULT(1)
+
+	,CurrencyId INTEGER REFERENCES Currency(Id)
+
+	,IsPriceChangeAllowed INTEGER (1) NOT NULL DEFAULT 0
+
+	,IsService INTEGER (1) NOT NULL DEFAULT 0
+
+	,IsUsingDefaultQuantity INTEGER (1) NOT NULL DEFAULT 1
+
+	,IsEnabled INTEGER (1) NOT NULL DEFAULT(1)
+
+	,Description TEXT
+
+	,DateCreated DATETIME NOT NULL DEFAULT(DATETIME ('now','localtime'))
+
+	,DateUpdated DATETIME NOT NULL DEFAULT(DATETIME ('now','localtime'))
+
+	,Cost NUMERIC NOT NULL DEFAULT 0
+
+	,Markup NUMERIC NOT NULL DEFAULT 0
+
+	,Image BLOB
+
+	,Color TEXT NOT NULL DEFAULT 'Transparent'
+
+	, AgeRestriction NUMERIC, LastPurchasePrice NUMERIC NOT NULL DEFAULT (0), Rank NUMERIC NOT NULL DEFAULT (0),FOREIGN KEY (ProductGroupId) REFERENCES ProductGroup(Id) ON DELETE CASCADE
+
+	);
+CREATE TABLE DocumentItem (
+
+	Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL
+
+	,DocumentId INTEGER REFERENCES Document(Id) ON DELETE CASCADE NOT NULL
+
+	,ProductId INTEGER REFERENCES Product(Id) NOT NULL
+
+	,Quantity NUMERIC NOT NULL DEFAULT(0)
+
+	,ExpectedQuantity NUMERIC NOT NULL DEFAULT(0)
+
+	,PriceBeforeTax NUMERIC NOT NULL DEFAULT(0)
+
+	,Price NUMERIC NOT NULL
+
+	,Discount NUMERIC NOT NULL DEFAULT(0)
+
+	,DiscountType INTEGER NOT NULL DEFAULT(0)
+
+	,ProductCost NUMERIC NOT NULL DEFAULT 0
+
+ 	,PriceBeforeTaxAfterDiscount NUMERIC NOT NULL DEFAULT(0)
+
+	,PriceAfterDiscount NUMERIC NOT NULL DEFAULT(0)
+
+	,Total NUMERIC NOT NULL DEFAULT(0)
+
+             ,TotalAfterDocumentDiscount NUMERIC NOT NULL DEFAULT(0)
+
+	, DiscountApplyRule INTEGER(1) NOT NULL DEFAULT (0));
+CREATE TABLE PosVoid (
+
+    Id           INTEGER  PRIMARY KEY AUTOINCREMENT
+
+                          NOT NULL,
+
+    OrderNumber  TEXT     NOT NULL,
+
+    UserId       INTEGER  REFERENCES User (Id) ON DELETE SET NULL,
+
+    UserName     TEXT     NOT NULL,
+
+    ProductId    INTEGER  REFERENCES Product (Id) ON DELETE SET NULL,
+
+    ProductName  TEXT     NOT NULL,
+
+    RoundNumber  INTEGER  NOT NULL,
+
+    Quantity     NUMERIC  NOT NULL,
+
+    Price        NUMERIC  NOT NULL,
+
+    Discount     NUMERIC  NOT NULL,
+
+    DiscountType INTEGER  NOT NULL,
+
+    Total        NUMERIC  NOT NULL,
+
+    IsConfirmed  INTEGER  NOT NULL,
+
+    Reason       TEXT,
+
+    VoidedBy     INTEGER  REFERENCES User (Id) ON DELETE SET NULL,
+
+    VoidedByName TEXT,
+
+    Bundle       TEXT,
+
+    DateCreated  DATETIME NOT NULL,
+
+    DateVoided   DATETIME NOT NULL
+
+);
+CREATE TABLE VoidReason (
+
+    Id           INTEGER  PRIMARY KEY AUTOINCREMENT
+
+                          NOT NULL,
+
+    Name         TEXT     NOT NULL,
+
+    Rank         INTEGER  NOT NULL,
+
+    DateCreated  DATETIME NOT NULL
+
+);
+CREATE TABLE Template (
+
+    Id           INTEGER  PRIMARY KEY AUTOINCREMENT
+
+                          NOT NULL,
+
+    Name         TEXT     NOT NULL,
+
+    Value        TEXT     NOT NULL
+
+);
+CREATE UNIQUE INDEX UK_TemplateName ON Template (
+
+    Name
+
+);
+CREATE TABLE DocumentItemExpirationDate (
+
+    DocumentItemId INTEGER PRIMARY KEY
+
+                           CONSTRAINT FK_DocumentItemExpirationDate_DocumentItem REFERENCES DocumentItem (Id) ON DELETE CASCADE,
+
+    ExpirationDate DATE    NOT NULL
+
+);
+CREATE UNIQUE INDEX IX_DocumentItemExpirationdate ON DocumentItemExpirationDate (
+
+    DocumentItemId
+
+);
+CREATE TABLE PriceList 
+
+(
+
+	Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+
+	Name TEXT NOT NULL, 
+
+    ArePromotionsAllowed INTEGER(1) NOT NULL DEFAULT (1),
+
+    IsActive INTEGER(1) NOT NULL DEFAULT (0),
+
+	DateCreated DATETIME NOT NULL DEFAULT (datetime('now', 'localtime')),
+
+	DateUpdated DATETIME NOT NULL DEFAULT (datetime('now', 'localtime'))
+
+);
+CREATE TABLE PriceListItem
+
+(
+
+	Id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+
+	PriceListId INTEGER REFERENCES PriceList (Id) ON DELETE CASCADE NOT NULL,
+
+	ProductId INTEGER REFERENCES Product (Id) ON DELETE CASCADE NOT NULL,
+
+	Price NUMERIC NOT NULL DEFAULT(0),
+
+	Markup NUMERIC NOT NULL DEFAULT (0)
+
+);
+CREATE TABLE StockControl (
+
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    ProductId INTEGER CONSTRAINT FK_StockControl_Product REFERENCES Product (Id) ON DELETE CASCADE NOT NULL,
+
+    CustomerId INTEGER REFERENCES Customer (Id) ON DELETE SET NULL,
+
+    ReorderPoint NUMERIC NOT NULL DEFAULT (0),
+
+    PreferredQuantity NUMERIC NOT NULL DEFAULT (0),
+
+    IsLowStockWarningEnabled INTEGER (1) NOT NULL DEFAULT (1),
+
+    LowStockWarningQuantity NUMERIC NOT NULL DEFAULT (0)
+
+);
+CREATE UNIQUE INDEX IX_StockControl_Product ON StockControl (ProductId);

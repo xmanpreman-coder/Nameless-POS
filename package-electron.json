@@ -1,0 +1,83 @@
+{
+  "name": "nameless-pos",
+  "version": "1.0.0",
+  "description": "Point of Sale System - Portable Desktop Application",
+  "main": "electron/main.js",
+  "homepage": "./",
+  "author": "Your Name",
+  "license": "MIT",
+  "scripts": {
+    "react-start": "react-scripts start",
+    "react-build": "react-scripts build",
+    "react-test": "react-scripts test",
+    "react-eject": "react-scripts eject",
+    "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron-build": "npm run react-build && electron-builder",
+    "build": "npm run react-build && npm run electron-build",
+    "dev": "electron .",
+    "start": "concurrently \"php -S localhost:8000 -t public\" \"electron .\"",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "dependencies": {
+    "electron-is-dev": "^2.0.0",
+    "electron-squirrel-startup": "^1.1.0"
+  },
+  "devDependencies": {
+    "electron": "^latest",
+    "electron-builder": "^24.0.0",
+    "electron-packager": "^16.0.0",
+    "concurrently": "^7.0.0",
+    "wait-on": "^7.0.0"
+  },
+  "build": {
+    "appId": "com.nameless.pos",
+    "productName": "Nameless POS",
+    "files": [
+      "electron/**/*",
+      "public/**/*",
+      "app/**/*",
+      "Modules/**/*",
+      "routes/**/*",
+      "config/**/*",
+      "bootstrap/**/*",
+      "storage/**/*",
+      "database/**/*",
+      "vendor/**/*",
+      ".env.production",
+      "artisan",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "certificateFile": null,
+      "certificatePassword": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Nameless POS"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-portable.exe"
+    }
+  }
+}

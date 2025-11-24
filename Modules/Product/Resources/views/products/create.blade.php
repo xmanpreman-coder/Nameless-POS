@@ -149,12 +149,9 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="form-group">
-                                <label>Product Images <i class="bi bi-question-circle-fill text-info" data-toggle="tooltip" data-placement="top" title="Max Files: 3, Max File Size: 1MB, Image Size: 400x400"></i></label>
-                                <div class="dropzone d-flex flex-wrap align-items-center justify-content-center" id="document-dropzone">
-                                    <div class="dz-message" data-dz-message>
-                                        <i class="bi bi-cloud-arrow-up"></i>
-                                    </div>
-                                </div>
+                                <label for="product_images">Product Images <i class="bi bi-question-circle-fill text-info" data-toggle="tooltip" data-placement="top" title="Max 3 files, Max 2MB per file"></i></label>
+                                <input type="file" id="product_images" name="images[]" multiple accept="image/*" class="form-control" aria-label="Product images">
+                                <small class="form-text text-muted">You can select up to 3 images</small>
                             </div>
                         </div>
                     </div>
@@ -168,60 +165,9 @@
 @endsection
 
 @section('third_party_scripts')
-    <script src="{{ asset('js/dropzone.js') }}"></script>
 @endsection
 
 @push('page_scripts')
-    <script>
-        var uploadedDocumentMap = {}
-        Dropzone.options.documentDropzone = {
-            url: '{{ route('dropzone.upload') }}',
-            maxFilesize: 1,
-            acceptedFiles: '.jpg, .jpeg, .png',
-            maxFiles: 3,
-            addRemoveLinks: true,
-            dictRemoveFile: "<i class='bi bi-x-circle text-danger'></i> remove",
-            headers: {
-                "X-CSRF-TOKEN": "{{ csrf_token() }}"
-            },
-            success: function (file, response) {
-                $('form').append('<input type="hidden" name="document[]" value="' + response.name + '">');
-                uploadedDocumentMap[file.name] = response.name;
-            },
-            removedfile: function (file) {
-                file.previewElement.remove();
-                var name = '';
-                if (typeof file.file_name !== 'undefined') {
-                    name = file.file_name;
-                } else {
-                    name = uploadedDocumentMap[file.name];
-                }
-                $.ajax({
-                    type: "POST",
-                    url: "{{ route('dropzone.delete') }}",
-                    data: {
-                        '_token': "{{ csrf_token() }}",
-                        'file_name': `${name}`
-                    },
-                });
-                $('form').find('input[name="document[]"][value="' + name + '"]').remove();
-            },
-            init: function () {
-                @if(isset($product) && $product->getMedia('images'))
-                var files = {!! json_encode($product->getMedia('images')) !!};
-                for (var i in files) {
-                    var file = files[i];
-                    this.options.addedfile.call(this, file);
-                    this.options.thumbnail.call(this, file, file.original_url);
-                    file.previewElement.classList.add('dz-complete');
-                    $('form').append('<input type="hidden" name="document[]" value="' + file.file_name + '">');
-                }
-                @endif
-            }
-        }
-    </script>
-
-    <script src="{{ asset('js/jquery-mask-money.js') }}"></script>
     <script>
         $(document).ready(function () {
             $('#product_cost').maskMoney({

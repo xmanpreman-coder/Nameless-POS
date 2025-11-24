@@ -79,9 +79,16 @@ class ProductController extends Controller
 
 
     public function store(StoreProductRequest $request) {
-        $product = Product::create($request->except('document'));
+        $product = Product::create($request->except(['document', 'images']));
 
-        if ($request->has('document')) {
+        // Handle direct image upload (new method)
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $product->addMediaFromRequest('images')->toMediaCollection('images');
+            }
+        }
+        // Fallback: Handle dropzone uploads (old method)
+        elseif ($request->has('document')) {
             foreach ($request->input('document', []) as $file) {
                 $product->addMedia(Storage::path('temp/dropzone/' . $file))->toMediaCollection('images');
             }
@@ -111,9 +118,16 @@ class ProductController extends Controller
 
 
     public function update(UpdateProductRequest $request, Product $product) {
-        $product->update($request->except('document'));
+        $product->update($request->except(['document', 'images']));
 
-        if ($request->has('document')) {
+        // Handle direct image upload (new method)
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $product->addMediaFromRequest('images')->toMediaCollection('images');
+            }
+        }
+        // Fallback: Handle dropzone uploads (old method)
+        elseif ($request->has('document')) {
             if (count($product->getMedia('images')) > 0) {
                 foreach ($product->getMedia('images') as $media) {
                     if (!in_array($media->file_name, $request->input('document', []))) {
@@ -145,6 +159,22 @@ class ProductController extends Controller
         toast('Product Deleted!', 'warning');
 
         return redirect()->route('products.index');
+    }
+
+    /**
+     * Delete media file from product
+     */
+    public function deleteMedia(Product $product, $mediaId) {
+        abort_if(Gate::denies('edit_products'), 403);
+
+        $media = $product->media()->where('id', $mediaId)->first();
+        
+        if ($media) {
+            $media->delete();
+            toast('Image Deleted!', 'success');
+        }
+
+        return back();
     }
 
     public function showImportForm() {

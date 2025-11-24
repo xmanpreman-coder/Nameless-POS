@@ -2,12 +2,6 @@
 
 @section('title', 'Create User')
 
-@section('third_party_stylesheets')
-    <link href="https://unpkg.com//dist/.css" rel="stylesheet"/>
-    <link href="https://unpkg.com/-plugin-image-preview/dist/-plugin-image-preview.css"
-          rel="stylesheet">
-@endsection
-
 @section('breadcrumb')
     <ol class="breadcrumb border-0 m-0">
         <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
@@ -99,36 +93,5 @@
         </form>
     </div>
 @endsection
-
-@section('third_party_scripts')
-    <script src="https://unpkg.com/-plugin-image-preview/dist/-plugin-image-preview.js"></script>
-    <script
-        src="https://unpkg.com/-plugin-file-validate-size/dist/-plugin-file-validate-size.js"></script>
-    <script
-        src="https://unpkg.com/-plugin-file-validate-type/dist/-plugin-file-validate-type.js"></script>
-    <script src="https://unpkg.com//dist/.js"></script>
-@endsection
-
-@push('page_scripts')
-    <script>
-        .registerPlugin(
-            PluginImagePreview,
-            PluginFileValidateSize,
-            PluginFileValidateType
-        );
-        const fileElement = document.querySelector('input[id="image"]');
-        const pond = .create(fileElement, {
-            acceptedFileTypes: ['image/png', 'image/jpg', 'image/jpeg'],
-        });
-        .setOptions({
-            server: {
-                url: "{{ route('.upload') }}",
-                headers: {
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                }
-            }
-        });
-    </script>
-@endpush
 
 
