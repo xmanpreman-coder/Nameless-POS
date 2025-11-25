@@ -78,7 +78,24 @@ class ExternalScannerHandler {
         // Skip if this is normal typing (too short or gradual input)
         if (!value || value.length < 6) return;
         
-        // Check if this looks like rapid scanner input
+        // Special handling for Livewire input fields (like POS search)
+        if (e.target.hasAttribute('wire:model.live.debounce.500ms') || 
+            e.target.id === 'product-search-input') {
+            console.log('External scanner: Livewire input detected:', value);
+            
+            if (this.looksLikeBarcode(value)) {
+                // For Livewire fields, trigger the wire:model update immediately
+                e.target.dispatchEvent(new Event('input', { bubbles: true }));
+                
+                // Also trigger change event for immediate processing
+                e.target.dispatchEvent(new Event('change', { bubbles: true }));
+                
+                console.log('External scanner: Livewire barcode input triggered:', value);
+                return; // Let Livewire handle the processing
+            }
+        }
+        
+        // Check if this looks like rapid scanner input for other fields
         const now = Date.now();
         if (!this.lastInputTime) this.lastInputTime = now;
         const timeSinceLastInput = now - this.lastInputTime;
@@ -125,16 +142,41 @@ class ExternalScannerHandler {
                     this.activeInputField = e.target;
                 });
                 
-                // Monitor value changes
+                // Monitor value changes with special handling for POS search
                 input.addEventListener('input', (e) => {
                     const value = e.target.value;
                     if (value && this.looksLikeBarcode(value)) {
                         console.log('External scanner: Barcode detected in input field:', value);
+                        
+                        // Special handling for POS search input (Livewire)
+                        if (e.target.id === 'product-search-input') {
+                            console.log('External scanner: POS search input detected, letting Livewire handle it');
+                            // Don't call processBarcode - let Livewire handle it
+                            return;
+                        }
+                        
+                        // For other inputs, process normally
                         this.processBarcode(value, 'monitored_input');
                     }
                 });
             });
         });
+        
+        // Special monitoring for the POS search input with direct keyboard events
+        const posSearchInput = document.getElementById('product-search-input');
+        if (posSearchInput) {
+            console.log('External scanner: Setting up POS search input monitoring');
+            
+            // Monitor for rapid keyboard input directly into the POS search field
+            posSearchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && posSearchInput.value && this.looksLikeBarcode(posSearchInput.value)) {
+                    console.log('External scanner: Enter pressed on POS search with barcode:', posSearchInput.value);
+                    // Trigger immediate Livewire processing by dispatching events
+                    posSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    posSearchInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        }
     }
 
     handleExternalScan(data) {
@@ -230,8 +272,17 @@ class ExternalScannerHandler {
             console.log('External scanner: Processing buffer from Enter:', this.barcodeBuffer, 'Duration:', duration + 'ms', 'Length:', this.barcodeBuffer.length);
             
             if (this.looksLikeBarcode(this.barcodeBuffer)) {
-                e.preventDefault();
-                this.processBarcode(this.barcodeBuffer, 'keyboard_enter');
+                // Check if we're in the POS search input
+                const posSearchInput = document.getElementById('product-search-input');
+                if (posSearchInput && document.activeElement === posSearchInput) {
+                    console.log('External scanner: Enter in POS search field, letting Livewire handle:', this.barcodeBuffer);
+                    // Don't prevent default - let Livewire handle the search
+                    posSearchInput.value = this.barcodeBuffer;
+                    posSearchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                } else {
+                    e.preventDefault();
+                    this.processBarcode(this.barcodeBuffer, 'keyboard_enter');
+                }
             } else {
                 console.log('External scanner: Rejecting buffer from Enter (invalid barcode):', this.barcodeBuffer);
             }
@@ -343,17 +394,19 @@ class ExternalScannerHandler {
             try {
                 console.log(`External scanner: API attempt ${attempt}/${maxRetries}`);
                 
-                const formData = new FormData();
-                formData.append('barcode', barcode);
-                formData.append('source', source);
-                formData.append('timestamp', timestamp);
+                const requestData = {
+                    barcode: barcode,
+                    source: source,
+                    timestamp: timestamp
+                };
 
                 const response = await fetch(this.apiEndpoint, {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
-                    body: formData
+                    body: JSON.stringify(requestData)
                 });
 
                 console.log('External scanner: Response status:', response.status, response.statusText);

@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-class AddProductSkuToDetailTables20251119 extends Migration
+return new class extends Migration
 {
     public function up(): void
     {
@@ -59,4 +59,4 @@ class AddProductSkuToDetailTables20251119 extends Migration
             }
         }
     }
-}
+};

@@ -42,7 +42,14 @@ class SearchProduct extends Component
     }
 
     public function selectProduct($product) {
-        $this->dispatch('productSelected', $product);
+        // Ensure product is passed as array for consistent event handling
+        if (is_object($product)) {
+            $productArray = $product->toArray();
+        } else {
+            $productArray = $product;
+        }
+        
+        $this->dispatch('productSelected', $productArray);
     }
 
     public function searchByBarcode($barcode) {
@@ -51,7 +58,12 @@ class SearchProduct extends Component
         
         if ($searchResult['product']) {
             $product = $searchResult['product'];
-            $this->selectProduct($product);
+            
+            // Convert to array for proper event dispatching
+            $productArray = $product->toArray();
+            
+            // Dispatch event to add product to cart (specifically for POS)
+            $this->dispatch('productSelected', $productArray);
             $this->resetQuery();
             
             $message = $searchResult['reconstructed'] ? 

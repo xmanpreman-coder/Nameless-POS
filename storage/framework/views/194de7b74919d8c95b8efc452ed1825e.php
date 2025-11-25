@@ -44,12 +44,41 @@
             const backupButton = document.getElementById('backup-database-button');
             if (backupButton) {
                 backupButton.addEventListener('click', async () => {
-                    console.log('Backup button clicked. Calling electronAPI.backupDatabase...');
-                    try {
-                        const result = await window.electronAPI.backupDatabase();
-                        console.log('Backup process finished:', result);
-                    } catch (error) {
-                        console.error('An error occurred while trying to backup the database:', error);
+                    console.log('Backup button clicked...');
+                    
+                    // Check if we're in Electron mode or web mode
+                    if (window.electronAPI && window.electronAPI.backupDatabase) {
+                        // Electron mode - use Electron API
+                        console.log('Using Electron API for backup');
+                        
+                        // Disable button during backup
+                        backupButton.disabled = true;
+                        const originalText = backupButton.innerHTML;
+                        backupButton.innerHTML = '<span class="spinner-border spinner-border-sm mr-2"></span>Backing up...';
+                        
+                        try {
+                            const result = await window.electronAPI.backupDatabase();
+                            console.log('Electron backup process finished:', result);
+                            
+                            if (result.success) {
+                                alert('Backup created successfully: ' + result.fileName);
+                                console.log('Backup created successfully:', result.fileName);
+                            } else {
+                                alert('Backup failed: ' + result.message);
+                                console.error('Backup failed:', result.message);
+                            }
+                        } catch (error) {
+                            console.error('An error occurred during Electron backup:', error);
+                            alert('Error during backup: ' + error.message);
+                        } finally {
+                            // Re-enable button
+                            backupButton.disabled = false;
+                            backupButton.innerHTML = originalText;
+                        }
+                    } else {
+                        // Web mode - redirect to backup page
+                        console.log('Using web interface for backup');
+                        window.location.href = '<?php echo e(route("database.backup.index")); ?>';
                     }
                 });
             }

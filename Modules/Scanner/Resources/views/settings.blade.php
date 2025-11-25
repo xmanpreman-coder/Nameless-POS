@@ -119,15 +119,57 @@
                         <!-- USB Scanner Settings -->
                         <div id="usb-settings" class="scanner-settings" style="{{ $settings->scanner_type !== 'usb' ? 'display: none;' : '' }}">
                             <h6 class="text-primary mt-4"><i class="bi bi-usb"></i> USB Scanner Settings</h6>
-                            <div class="alert alert-warning">
-                                <i class="bi bi-exclamation-triangle"></i>
-                                <strong>USB Scanner Setup:</strong>
-                                <ol class="mb-0 mt-2">
-                                    <li>Connect your USB barcode scanner to the device</li>
-                                    <li>Most USB scanners work as keyboard input devices</li>
-                                    <li>Scanner should be automatically detected</li>
-                                    <li>Test scanner functionality below</li>
-                                </ol>
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Universal USB Scanner Support:</strong>
+                                <ul class="mb-0 mt-2">
+                                    <li><strong>Auto-Detection:</strong> Supports all USB scanners as keyboard input</li>
+                                    <li><strong>Compatible:</strong> CashCow, Honeywell, Symbol, Zebra, Datalogic, dll.</li>
+                                    <li><strong>No Configuration:</strong> Plug & play - tidak perlu setting manual</li>
+                                    <li><strong>Real-time:</strong> Deteksi otomatis saat scanner dihubungkan</li>
+                                </ul>
+                            </div>
+                            
+                            <!-- Auto-Detection Status -->
+                            <div class="card border-success">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0"><i class="bi bi-lightning-charge"></i> Auto-Detection Status</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="usb-auto-status" class="alert alert-secondary">
+                                        <i class="bi bi-gear"></i> Initializing universal scanner detection...
+                                    </div>
+                                    <div id="detected-scanners" style="display: none;"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Universal Test -->
+                            <div class="card border-primary mt-3">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0"><i class="bi bi-speedometer2"></i> Universal Scanner Test</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-2">Test any USB barcode scanner (semua merk/jenis):</p>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control form-control-lg" 
+                                               id="universal-scanner-test" 
+                                               placeholder="Scan barcode dengan scanner USB apapun..." 
+                                               autocomplete="off"
+                                               style="font-family: 'Courier New', monospace;">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="clearUniversalTest()">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-success">
+                                        <i class="bi bi-check-circle"></i> Semua scanner USB akan langsung terdeteksi tanpa konfigurasi
+                                    </small>
+                                    
+                                    <div id="universal-test-log" class="mt-3" style="background: #f8f9fa; border-radius: 5px; padding: 10px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto; display: none;">
+                                        <strong>Detection Log:</strong><br>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

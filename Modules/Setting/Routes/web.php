@@ -18,6 +18,15 @@ Route::group(['middleware' => 'auth'], function () {
     //General Settings
     Route::get('/settings', 'SettingController@index')->name('settings.index');
     Route::patch('/settings', 'SettingController@update')->name('settings.update');
+    
+    // Database Backup Routes
+    Route::get('/database-backup', 'DatabaseBackupController@index')->name('database.backup.index');
+    Route::get('/database-backup/download', 'DatabaseBackupController@download')->name('database.backup.download');
+    Route::post('/database-backup/restore', 'DatabaseBackupController@restore')->name('database.backup.restore');
+    Route::post('/database-backup/merge', 'DatabaseBackupController@merge')->name('database.backup.merge');
+    Route::post('/database-backup/selective-restore', 'DatabaseBackupController@selectiveRestore')->name('database.backup.selectiveRestore');
+    Route::post('/database-backup/analyze', 'DatabaseBackupController@analyze')->name('database.backup.analyze');
+    
     // Units
     Route::resource('units', 'UnitsController')->except('show');
 });
