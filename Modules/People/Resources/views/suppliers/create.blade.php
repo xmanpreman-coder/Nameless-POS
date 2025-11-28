@@ -12,13 +12,13 @@
 
 @section('content')
     <div class="container-fluid">
-        <form action="{{ route('suppliers.store') }}" method="POST">
+        <form action="{{ route('suppliers.store') }}" method="POST" id="supplier-form">
             @csrf
             <div class="row">
                 <div class="col-lg-12">
                     @include('utils.alerts')
                     <div class="form-group">
-                        <button class="btn btn-primary">Create Supplier <i class="bi bi-check"></i></button>
+                        <button class="btn btn-primary" id="save-button">Create Supplier <i class="bi bi-check"></i></button>
                     </div>
                 </div>
                 <div class="col-lg-12">
@@ -75,4 +75,12 @@
         </form>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.getElementById('supplier-form').addEventListener('submit', function() {
+            document.getElementById('save-button').disabled = true;
+        });
+    </script>
+@endpush
 

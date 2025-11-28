@@ -68,7 +68,7 @@ Route::group(['middleware' => 'auth'], function () {
             $customer = \Modules\People\Entities\Customer::find($sale->customer_id);
         }
         return view('sale::print-thermal-80mm', compact('sale', 'customer'));
-    })->name('sales.thermal.print');
+    })->name('sales.thermal.show');
 
     //Sales
     Route::resource('sales', 'SaleController');

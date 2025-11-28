@@ -27,27 +27,15 @@ files:
 
 win:
   target:
-    - nsis
     - portable
   certificateFile: null
   certificatePassword: null
-  signingHashAlgorithms:
-    - sha256
-
-nsis:
-  oneClick: false
-  allowToChangeInstallationDirectory: true
-  createDesktopShortcut: true
-  createStartMenuShortcut: true
-  shortcutName: Nameless POS
-  installerIcon: assets/icon.ico
-  uninstallerIcon: assets/icon.ico
-  installerHeaderIcon: assets/icon.ico
+  sign: ./customSign.js
 
 portable:
-  artifactName: ${productName}-${version}-portable.exe
+  artifactName: Nameless-POS-${version}-portable.exe
 
 publish:
   provider: github
-  owner: your-username
-  repo: nameless-pos
+  owner: xmanpreman-coder
+  repo: Nameless-Pos

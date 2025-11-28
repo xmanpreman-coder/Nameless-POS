@@ -12,7 +12,7 @@
     <ul class="c-sidebar-nav-dropdown-items">
         @can('access_product_categories')
         <li class="c-sidebar-nav-item">
-            <a class="c-sidebar-nav-link {{ request()->routeIs('product-categories.*') ? 'c-active' : '' }}" href="{{ route('product-categories.index') }}">
+            <a class="c-sidebar-nav-link {{ request()->routeIs('product-categories.*') ? 'c-active' : '' }}" href="@if(\Illuminate\Support\Facades\Route::has('product-categories.index')){{ route('product-categories.index') }}@else#@endif">
                 <i class="c-sidebar-nav-icon bi bi-collection" style="line-height: 1;"></i> Categories
             </a>
         </li>
@@ -387,9 +387,9 @@
             <!-- System Section -->
             @can('access_settings')
                 <li class="c-sidebar-nav-item">
-                    <button class="c-sidebar-nav-link" id="backup-database-button" type="button" style="border: none; background: none; text-align: left;">
-                        <i class="c-sidebar-nav-icon bi bi-database-down" style="line-height: 1;"></i> Backup Database
-                    </button>
+                    <a class="c-sidebar-nav-link" href="{{ route("database.backup.index") }}">
+                        <i class="c-sidebar-nav-icon bi bi-database-down" style="line-height: 1;"></i> Backup & Restore
+                    </a>
                 </li>
             @endcan
         </ul>

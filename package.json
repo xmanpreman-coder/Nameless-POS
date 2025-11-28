@@ -11,6 +11,7 @@
         "build": "vite build",
         "dist": "electron-builder",
         "dist:portable": "electron-builder --win portable",
+        "dist:nosigint": "node build-nosigint.js",
         "start": "electron ."
     },
     "devDependencies": {
@@ -27,31 +28,38 @@
         "vite": "^4.4.7"
     },
     "dependencies": {
-        "autoprefixer": "^10.3.1"
+        "autoprefixer": "^10.3.1",
+        "electron-log": "^5.4.3",
+        "electron-updater": "^6.6.2"
     },
     "build": {
         "appId": "com.nameless.pos",
         "productName": "Nameless POS",
         "files": [
             "electron/**/*",
-            "public/**/*",
-            "app/**/*",
-            "Modules/**/*",
-            "routes/**/*",
-            "config/**/*",
-            "bootstrap/**/*",
-            "storage/**/*",
-            "database/**/*",
-            "vendor/**/*",
-            ".env.production",
+            "node_modules/**/*"
+        ],
+        "extraFiles": [
+            "app",
             "artisan",
-            "package.json"
+            "bootstrap",
+            "build/php",
+            "config",
+            "database",
+            "Modules",
+            "public",
+            "resources",
+            "routes",
+            "storage",
+            "vendor",
+            ".env.production"
         ],
         "win": {
             "target": [
-                "portable",
-                "nsis"
-            ]
+                "portable"
+            ],
+            "forceCodeSigning": false,
+            "verifyUpdateCodeSignature": false
         },
         "nsis": {
             "oneClick": false,

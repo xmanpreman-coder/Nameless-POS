@@ -78,8 +78,7 @@
 @livewireScripts
 
 <script>
-    // Ensure sidebar dropdown toggles work properly on all pages
-    // This event handler uses capture phase to prevent event blocking
+
     document.addEventListener('click', function(e) {
         const dropdownToggle = e.target.closest('.c-sidebar-nav-dropdown-toggle');
         if (dropdownToggle) {

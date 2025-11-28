@@ -29,7 +29,7 @@ Route::middleware(['auth'])->group(function () {
 // User Profile Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [App\Http\Controllers\UserProfileController::class, 'show'])->name('profile.show');
-    Route::patch('/profile', [App\Http\Controllers\UserProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile', [App\Http\Controllers\UserProfileController::class, 'update'])->name('app_profile.update');
 });
 
 Auth::routes(['register' => false]);
@@ -49,7 +49,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Scanner Settings Routes
     Route::get('/scanner-settings', 'ScannerSettingsController@index')->name('scanner-settings.index');
-    Route::get('/scanner-settings', 'ScannerSettingsController@index')->name('scanner.settings');
+    
     Route::post('/scanner-settings/test', 'ScannerSettingsController@testConnection')->name('scanner.settings.test');
     Route::get('/scanner-settings/network-info', 'ScannerSettingsController@getNetworkInfo')->name('scanner.settings.network');
     Route::get('/scanner-settings/qr-config', 'ScannerSettingsController@getQRConfig')->name('scanner.settings.qr');

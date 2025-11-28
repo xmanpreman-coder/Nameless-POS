@@ -1,34 +1,96 @@
 # 🚀 NAMELESS POS - QUICK START GUIDE
 
-## ✅ Status: READY TO USE
+**Versi:** 1.0.0  
+**Updated:** November 27, 2025  
+**Status:** ✅ Production Ready
 
 ---
 
-## 🔐 Login
+## ⚡ UNTUK PENGGUNA AKHIR (End Users)
+
+### Step 1: Persiapan (Setup - 5 menit)
+
+**Requirement:**
+- Windows 10/11 64-bit
+- 2GB RAM minimum
+- 1GB free disk space
+
+**Install PHP + MySQL:**
+
+Option A - XAMPP (Recommended)
+```
+1. Download: https://www.apachefriends.org/
+2. Install with default settings
+3. Start XAMPP Control Panel
+4. Click "Start" on Apache & MySQL
+```
+
+### Step 2: Run Nameless POS
 
 ```
-URL: http://localhost:8000
-Email: super.admin@test.com
+1. Double-click: Nameless POS 1.0.0.exe
+2. Wait 6-8 seconds for app to load
+3. Login with your credentials
+```
+
+### Step 3: Setup Database (First Time)
+
+```
+1. Open XAMPP Control Panel
+2. Start MySQL
+3. Click "Admin" → phpMyAdmin
+4. Create database (app will prompt)
+5. Return to Nameless POS
+```
+
+**That's it!** App is ready to use.
+
+---
+
+## 🔐 Default Login
+
+```
+Email:    super.admin@test.com
 Password: 12345678
 ```
 
+**Change on first login for security!**
+
 ---
 
-## 📊 What's Available
+## 🔧 UNTUK DEVELOPER (Developers)
 
-### Products
-- ✅ 18 products in database
-- ✅ DataTable fully working
-- ✅ Create/Edit/Delete functional
-- ✅ Product SKU (code) column fixed
+### Development Setup
 
-### Sales
-- ✅ 120 transactions available
-- ✅ Full POS functionality
-- ✅ All routes working
-- ✅ Receipt printing configured
+```bash
+git clone https://github.com/xmanpreman-coder/Nameless-POS.git
+cd Nameless-POS
+npm install && composer install
+cp .env.production .env
+php artisan key:generate
+php artisan migrate
+npm start
+```
 
-### Purchases
+### Build Portable EXE
+
+```bash
+npm run dist:portable
+# Output: dist/Nameless POS 1.0.0.exe
+```
+
+### Commands
+
+```bash
+npm start                 # Dev mode
+npm run build            # Build assets
+npm run dist:portable    # Build EXE
+php artisan test         # Run tests
+```
+
+---
+
+## ⚡ If App is Slow
 - ✅ 120 purchase records
 - ✅ Full purchase management
 - ✅ All routes functional

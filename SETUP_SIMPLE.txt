@@ -1,0 +1,62 @@
+# 🚀 NAMELESS POS - SETUP MANUAL SINGKAT (5 menit)
+
+## SIMPEL - Hanya 3 langkah:
+
+### 1️⃣ Install XAMPP (PHP + MySQL semua ada)
+```
+→ Download: https://www.apachefriends.org/
+→ Install (next, next, finish)
+→ Buka XAMPP Control Panel
+→ Klik Start (Apache + MySQL) sampai warna hijau
+```
+
+### 2️⃣ Copy EXE Nameless POS
+```
+→ Copy file: Nameless POS 1.0.0.exe
+→ Paste ke folder favorit (misal C:\POS)
+→ Double-click untuk jalankan
+→ Tunggu 6-8 detik sampai login screen muncul
+```
+
+### 3️⃣ Login
+```
+Email:    super.admin@test.com
+Password: 12345678
+
+⚠️  CHANGE PASSWORD AFTER LOGIN!
+```
+
+---
+
+## ✅ DONE! Aplikasi siap pakai.
+
+---
+
+## ❌ Jika Error?
+
+**Error: "Failed to start Laravel server"**
+```
+→ Pastikan XAMPP Control Panel terbuka
+→ Apache & MySQL harus START & HIJAU
+→ Tutup aplikasi, buka XAMPP, baru jalankan app lagi
+```
+
+**Aplikasi lambat?**
+```
+→ Buka Command Prompt/PowerShell
+→ cd ke folder app
+→ php artisan config:cache
+→ Jalankan app lagi
+```
+
+---
+
+## 📋 Requirements:
+- Windows 10 atau 11
+- 2 GB RAM (4GB lebih baik)
+- 1 GB disk space
+- XAMPP installed
+
+---
+
+**Itu saja! Selamat menggunakan Nameless POS** 🎉

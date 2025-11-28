@@ -6,7 +6,13 @@
     <ol class="breadcrumb border-0 m-0">
         <li class="breadcrumb-item"><a href="{{ route('home') }}">Home</a></li>
         <li class="breadcrumb-item"><a href="{{ route('products.index') }}">Products</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('product-categories.index') }}">Categories</a></li>
+        <li class="breadcrumb-item">
+            @if (\Illuminate\Support\Facades\Route::has('product-categories.index'))
+                <a href="{{ route('product-categories.index') }}">Categories</a>
+            @else
+                <a href="#">Categories</a>
+            @endif
+        </li>
         <li class="breadcrumb-item active">Edit</li>
     </ol>
 @endsection

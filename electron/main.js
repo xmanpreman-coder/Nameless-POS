@@ -1,181 +1,87 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-const { autoUpdater } = require('electron-updater');
+const { app, BrowserWindow, dialog } = require('electron');
 const path = require('path');
 const LaravelServer = require('./LaravelServer');
-const DatabaseManager = require('./DatabaseManager');
+const DatabaseManager = require('./DatabaseManager'); // Assuming it's needed
 
-let laravelServer = null;
-let databaseManager = null;
+let mainWindow;
+let laravelServer;
 
-function createWindow () {
-  const win = new BrowserWindow({
+async function createWindow() {
+  console.log('🚀 Creating window...');
+  const startTime = Date.now();
+  
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
+    show: false, // Don't show until ready
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false
+      preload: path.join(__dirname, 'preload.js'), // If you have a preload script
+      nodeIntegration: false, // Keep false for security
+      contextIsolation: true, // Keep true for security
+      // Allow loading insecure content (for localhost HTTP) - be careful in production
+      webSecurity: false 
     }
   });
 
-  const url = process.env.NAMELESS_URL || 'http://localhost:8000';
-  win.loadURL(url);
+  // Load an initial loading screen or a blank page
+  mainWindow.loadURL('about:blank'); 
 
-  // optional: open devtools when env set
-  if (process.env.ELECTRON_DEV === '1') {
-    win.webContents.openDevTools();
-  }
-
-  // Expose printers related handlers
-  ipcMain.handle('get-printers', () => {
-    try {
-      return win.webContents.getPrinters();
-    } catch (e) {
-      return { error: e.message };
-    }
-  });
-
-  ipcMain.handle('print', async (event, options) => {
-    return new Promise((resolve) => {
-      try {
-        win.webContents.print(options || {}, (success, failureReason) => {
-          resolve({ success, failureReason });
-        });
-      } catch (e) {
-        resolve({ success: false, failureReason: e.message });
-      }
-    });
-  });
-
-  // Database backup/restore handlers
-  ipcMain.handle('backup-database', async () => {
-    if (!databaseManager) {
-      databaseManager = new DatabaseManager();
-    }
-    const result = await databaseManager.backupDatabase();
-    
-    // Show success/error dialog
-    if (result.success) {
-      dialog.showMessageBox(win, {
-        type: 'info',
-        title: 'Backup Successful',
-        message: result.message,
-        buttons: ['OK', 'Open Backup Folder']
-      }).then(response => {
-        if (response.response === 1) {
-          const { shell } = require('electron');
-          shell.showItemInFolder(result.filePath);
-        }
-      });
-    } else {
-      dialog.showErrorBox('Backup Error', result.message);
-    }
-    
-    return result;
-  });
-
-  ipcMain.handle('restore-database', async (event, backupFilePath) => {
-    if (!databaseManager) {
-      databaseManager = new DatabaseManager();
-    }
-    
-    const result = await databaseManager.restoreDatabase(backupFilePath);
-    
-    if (result.success) {
-      dialog.showMessageBox(win, {
-        type: 'info',
-        title: 'Restore Successful',
-        message: result.message + ' App will restart now.',
-        buttons: ['OK']
-      }).then(() => {
-        app.relaunch();
-        app.exit(0);
-      });
-    } else {
-      dialog.showErrorBox('Restore Error', result.message);
-    }
-    
-    return result;
-  });
-}
-
-app.whenReady().then(async () => {
+  // Initialize and start Laravel server
+  laravelServer = new LaravelServer();
+  
   try {
-    // Start Laravel server first
-    laravelServer = new LaravelServer();
+    console.log('⏳ Starting Laravel server...');
+    const serverStart = Date.now();
+    
     await laravelServer.start();
-    console.log('[Main] Laravel server started successfully');
+    const serverTime = Date.now() - serverStart;
+    console.log(`✅ Laravel server started on port ${laravelServer.getPort()} (${serverTime}ms)`);
+
+    // Once server is ready, load the Laravel app with the correct port
+    const port = laravelServer.getPort();
+    console.log(`📡 Loading app from http://127.0.0.1:${port}...`);
+    const loadStart = Date.now();
     
-    // Give server time to fully initialize
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    mainWindow.loadURL(`http://127.0.0.1:${port}`);
     
-    // Then create window
-    createWindow();
-  } catch (err) {
-    console.error('[Main] Failed to start:', err);
-    dialog.showErrorBox('Error', 'Failed to start Nameless POS application');
+    mainWindow.once('ready-to-show', () => {
+      const loadTime = Date.now() - loadStart;
+      const totalTime = Date.now() - startTime;
+      console.log(`📺 Window ready (${loadTime}ms) - Total startup: ${totalTime}ms`);
+      mainWindow.show();
+    });
+
+  } catch (error) {
+    dialog.showErrorBox(
+      'Application Error',
+      `Failed to start the application. Please check the logs.\nError: ${error.message}`
+    );
+    console.error('❌ Failed to start application:', error);
     app.quit();
   }
 
-  // Check for updates after 5 seconds
-  setTimeout(() => {
-    autoUpdater.checkForUpdatesAndNotify();
-  }, 5000);
-
-  app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  mainWindow.on('closed', () => {
+    mainWindow = null;
   });
+}
+
+app.whenReady().then(createWindow);
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
 });
 
-// Auto-updater events
-autoUpdater.on('checking-for-update', () => {
-  console.log('Checking for update...');
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
 });
 
-autoUpdater.on('update-available', (info) => {
-  console.log('Update available.');
-  dialog.showMessageBox({
-    type: 'info',
-    title: 'Update Available',
-    message: 'A new version is available. It will be downloaded in the background.',
-    buttons: ['OK']
-  });
-});
-
-autoUpdater.on('update-not-available', (info) => {
-  console.log('Update not available.');
-});
-
-autoUpdater.on('error', (err) => {
-  console.log('Error in auto-updater. ' + err);
-});
-
-autoUpdater.on('download-progress', (progressObj) => {
-  let log_message = "Download speed: " + progressObj.bytesPerSecond;
-  log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
-  log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
-  console.log(log_message);
-});
-
-autoUpdater.on('update-downloaded', (info) => {
-  console.log('Update downloaded');
-  dialog.showMessageBox({
-    type: 'info',
-    title: 'Update Ready',
-    message: 'Update downloaded. The application will restart to apply the update.',
-    buttons: ['Restart Now', 'Later']
-  }).then((result) => {
-    if (result.response === 0) {
-      autoUpdater.quitAndInstall();
-    }
-  });
-});
-
-app.on('window-all-closed', async function () {
-  // Stop Laravel server
-  if (laravelServer) {
+app.on('before-quit', async () => {
+  if (laravelServer && laravelServer.isRunning()) {
+    console.log('Stopping Laravel server before quitting...');
     await laravelServer.stop();
   }
-  
-  if (process.platform !== 'darwin') app.quit();
 });

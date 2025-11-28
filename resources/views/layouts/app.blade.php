@@ -36,10 +36,27 @@
     @include('includes.main-js')
     
     <!-- Scanner Utils (Load first) -->
-    <script src="{{ asset('js/scanner-utils.js') }}"></script>
+    <script src="{{ asset('js/scanner-utils.js') }}
+    
+    <!-- Electron Scanner Bridge (Load for Electron environment) -->
+    <script src="{{ asset('js/electron-scanner.js') }}"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Prevent double submission for all POST forms
+            document.querySelectorAll('form[method="POST"]').forEach(form => {
+                form.addEventListener('submit', function(event) {
+                    const submitButton = form.querySelector('button[type="submit"], input[type="submit"]');
+                    if (submitButton && !submitButton.disabled) {
+                        submitButton.disabled = true;
+                        // Optional: Add loading text/spinner
+                        // const originalText = submitButton.innerHTML;
+                        // submitButton.innerHTML = '<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span> Saving...';
+                        // You might want to re-enable it on error/failure via a server response or a delayed re-enable.
+                    }
+                });
+            });
+
             // Backup button functionality
             const backupButton = document.getElementById('backup-database-button');
             if (backupButton) {

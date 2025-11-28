@@ -14,7 +14,9 @@ return [
      |
      */
 
-    'enabled' => env('DEBUGBAR_ENABLED', null),
+    // Enable debugbar only when explicitly enabled or when not in production
+    // and debug mode is on. This ensures production EXE won't show Debugbar.
+    'enabled' => env('DEBUGBAR_ENABLED', env('APP_ENV') !== 'production' && env('APP_DEBUG', false)),
     'except' => [
         'telescope*',
         'horizon*',
@@ -129,7 +131,8 @@ return [
         'config'          => false, // Display config settings
         'cache'           => false, // Display cache events
         'models'          => true,  // Display models
-        'livewire'        => true,  // Display Livewire (when available)
+        // Livewire collector enabled by default (restore original behaviour)
+        'livewire'        => true,
     ],
 
     /*
@@ -187,7 +190,8 @@ return [
      |
      */
 
-    'inject' => true,
+    // Inject debugbar only in non-production debug environments
+    'inject' => env('DEBUGBAR_INJECT', env('APP_ENV') !== 'production' && env('APP_DEBUG', false)),
 
     /*
      |--------------------------------------------------------------------------
