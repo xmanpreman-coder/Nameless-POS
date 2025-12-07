@@ -215,23 +215,19 @@
             }
             
             /* Thermal printer optimizations from manual */
-            @supports (-webkit-appearance: none) {
-                body {
-                    -webkit-print-color-adjust: exact;
-                }
-            }
-            
+            /* Avoid feature queries in Blade to reduce false-positive linter errors.
+               Apply print-color-adjust directly for print compatibility. */
             * {
                 -webkit-print-color-adjust: exact !important;
-                color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-            
+
             body {
                 margin: 0;
                 padding: 0;
                 background: white !important;
                 -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
             
             .thermal-receipt {
