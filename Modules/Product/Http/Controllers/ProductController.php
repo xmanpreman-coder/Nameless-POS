@@ -15,7 +15,9 @@ use Modules\Upload\Entities\Upload;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Modules\Product\Entities\Category;
+use Modules\Product\Entities\Brand;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
@@ -25,7 +27,24 @@ class ProductController extends Controller
     public function index(ProductDataTable $dataTable) {
         abort_if(Gate::denies('access_products'), 403);
 
-        return $dataTable->render('product::products.index');
+        $categories = Category::all();
+        $brands = Brand::all();
+
+        return $dataTable->render('product::products.index_new', compact('categories', 'brands'));
+    }
+
+    /**
+     * Display products with low stock (quantity <= stock_alert threshold)
+     */
+    public function stockAlert() {
+        abort_if(Gate::denies('access_products'), 403);
+
+        $low_stock_products = Product::with(['category', 'brand'])
+            ->whereColumn('product_quantity', '<=', 'product_stock_alert')
+            ->orderBy('product_quantity', 'asc')
+            ->get();
+
+        return view('product::products.stock-alert', compact('low_stock_products'));
     }
 
     public function exportCsv(Request $request) {
@@ -73,8 +92,9 @@ class ProductController extends Controller
 
         $units = \Modules\Setting\Entities\Unit::all();
         $categories = Category::all();
+        $brands = Brand::all(); // Retrieve all brands
         
-        return view('product::products.create', compact('units', 'categories'));
+        return view('product::products.create', compact('units', 'categories', 'brands')); // Pass brands to the view
     }
 
 
@@ -84,7 +104,19 @@ class ProductController extends Controller
         // Handle direct image upload (new method)
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $product->addMediaFromRequest('images')->toMediaCollection('images');
+                // Add each uploaded file directly using its temporary path to avoid
+                // re-reading the request input key (which can result in missing temp files).
+                // Use the original client filename for storage clarity.
+                try {
+                    // Pass the UploadedFile instance directly to Spatie MediaLibrary.
+                    // This avoids issues where temporary file paths may no longer exist
+                    // when MediaLibrary attempts to read them.
+                    $product->addMedia($image)
+                        ->usingFileName($image->getClientOriginalName())
+                        ->toMediaCollection('images');
+                } catch (\Exception $e) {
+                    Log::error('Product image upload failed: ' . $e->getMessage());
+                }
             }
         }
         // Fallback: Handle dropzone uploads (old method)
@@ -112,8 +144,9 @@ class ProductController extends Controller
 
         $units = \Modules\Setting\Entities\Unit::all();
         $categories = Category::all();
+        $brands = Brand::all(); // Retrieve all brands
         
-        return view('product::products.edit', compact('product', 'units', 'categories'));
+        return view('product::products.edit', compact('product', 'units', 'categories', 'brands')); // Pass brands to the view
     }
 
 
@@ -123,7 +156,14 @@ class ProductController extends Controller
         // Handle direct image upload (new method)
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $product->addMediaFromRequest('images')->toMediaCollection('images');
+                try {
+                    // Use UploadedFile instance directly to avoid missing temp file errors
+                    $product->addMedia($image)
+                        ->usingFileName($image->getClientOriginalName())
+                        ->toMediaCollection('images');
+                } catch (\Exception $e) {
+                    Log::error('Product image upload failed (update): ' . $e->getMessage());
+                }
             }
         }
         // Fallback: Handle dropzone uploads (old method)
@@ -187,50 +227,29 @@ class ProductController extends Controller
     {
         abort_if(Gate::denies('access_products'), 403);
 
+        // Check if enhanced template exists
+        $enhancedTemplate = public_path('templates/product_import_template_enhanced.csv');
+        
+        if (file_exists($enhancedTemplate)) {
+            return response()->download($enhancedTemplate, 'product_import_template_enhanced.csv');
+        }
+
+        // Fallback to old template generation
         $filename = 'product_template.csv';
         
-        // Headers sesuai dengan format yang diperlukan sistem
         $headers = [
-            'SKU',
-            'GTIN',
-            'Name',
-            'Cost',
-            'Price', 
-            'Quantity',
-            'Unit',
-            'Category'
+            'SKU', 'GTIN', 'Name', 'Cost', 'Price', 'Quantity', 'Unit', 'Category', 'Stock_Alert', 'Note'
         ];
 
-        // Sample data yang user-friendly
         $sampleData = [
-            [
-                'PRD001',
-                '1234567890123',
-                'Sample Product 1',
-                '50000.00',
-                '75000.00',
-                '100',
-                'pcs',
-                'Electronics'
-            ],
-            [
-                'PRD002',
-                '1234567890124', 
-                'Sample Product 2',
-                '25000.00',
-                '35000.00',
-                '50',
-                'pcs',
-                'Books'
-            ]
+            ['PRD001', '1234567890123', 'Sample Product 1', '50000.00', '75000.00', '100', 'pcs', 'Electronics', '10', 'Sample note'],
+            ['PRD002', '1234567890124', 'Sample Product 2', '25000.00', '35000.00', '50', 'pcs', 'Books', '15', 'Another sample'],
         ];
 
-        // Create semicolon-delimited CSV content with UTF-8 BOM for Excel (locale-friendly)
-        $csvContent = "\xEF\xBB\xBF"; // UTF-8 BOM
+        $csvContent = "\xEF\xBB\xBF";
         $csvContent .= implode(';', $headers) . "\r\n";
 
         foreach ($sampleData as $row) {
-            // Escape any semicolons inside values
             $escaped = array_map(function($v){
                 if (is_null($v)) return '';
                 return str_replace(';', ',', $v);
@@ -251,15 +270,23 @@ class ProductController extends Controller
     {
         abort_if(Gate::denies('access_products'), 403);
 
+        // Check if enhanced template exists
+        $enhancedTemplate = public_path('templates/product_import_template_enhanced.xlsx');
+        
+        if (file_exists($enhancedTemplate)) {
+            return response()->download($enhancedTemplate, 'product_import_template_enhanced.xlsx');
+        }
+
+        // Fallback to old template generation
         $filename = 'product_template.xlsx';
 
         $headers = [
-            'SKU', 'GTIN', 'Name', 'Cost', 'Price', 'Quantity', 'Unit', 'Category'
+            'SKU', 'GTIN', 'Name', 'Cost', 'Price', 'Quantity', 'Unit', 'Category', 'Stock_Alert', 'Note'
         ];
 
         $sampleData = [
-            ['PRD001','1234567890123','Sample Product 1','50000.00','75000.00','100','pcs','Electronics'],
-            ['PRD002','1234567890124','Sample Product 2','25000.00','35000.00','50','pcs','Books'],
+            ['PRD001','1234567890123','Sample Product 1','50000.00','75000.00','100','pcs','Electronics','10','Sample note'],
+            ['PRD002','1234567890124','Sample Product 2','25000.00','35000.00','50','pcs','Books','15','Another sample'],
         ];
 
         $export = new class($sampleData, $headers) implements FromArray, WithHeadings {
@@ -274,10 +301,14 @@ class ProductController extends Controller
     }
 
     public function importCsv(Request $request) {
+
         abort_if(Gate::denies('edit_products'), 403);
+
+        Log::info('Import CSV request received.', ['mode' => $request->import_mode, 'file' => $request->file('csv_file')->getClientOriginalName()]);
 
         $request->validate([
             'csv_file' => 'required|mimes:csv,txt|max:10240', // Max 10MB
+            'import_mode' => 'required|in:add_new,update_existing,both', // Allow add_new, update_existing, or both
         ]);
 
         $file = $request->file('csv_file');
@@ -385,98 +416,148 @@ class ProductController extends Controller
                     $errorCount++;
                     continue;
                 }
+
+
                 
                 // Find product by SKU or GTIN
                 $product = null;
                 if ($identifierType === 'sku') {
                     $product = Product::where('product_sku', $identifier)->first();
                 } else {
-                    $product = Product::where('product_gtin', $identifier)->first();
+                    $product = Product::where('product_gtin', 'LIKE', $identifier)->first();
                 }
                 
-                if (!$product) {
-                    $errors[] = "Row {$rowNumber}: Product with {$identifierType} '{$identifier}' not found";
+                $importMode = $request->input('import_mode'); // Get import mode from request
+                $isNewProduct = !$product;
+
+                // Add logging for processing each product row
+                Log::info("Row {$rowNumber}: Processing product with {$identifierType} '{$identifier}' in mode: {$importMode}");
+                
+                // If product not found in update_existing mode, add an error and skip
+                if ($importMode === 'update_existing' && $isNewProduct) {
+                    Log::info("Row {$rowNumber}: Product with {$identifierType} '{$identifier}' not found. Cannot add new products in this mode.");
+                    $errors[] = "Row {$rowNumber}: Product with {$identifierType} '{$identifier}' not found. Cannot add new products in this mode.";
                     $errorCount++;
                     continue;
                 }
+
+                // If product not found but import mode is 'add_new' or 'both', create new product
+                if ($isNewProduct && ($importMode === 'add_new' || $importMode === 'both')) {
+                    // Initialize product with identifier and other defaults
+                    $product = new Product();
+                    if ($identifierType === 'sku') {
+                        $product->product_sku = $identifier;
+                    } else {
+                        $product->product_gtin = $identifier;
+                    }
+                    // Set default values for required fields not in CSV
+                    $product->product_barcode_symbology = 'C128'; // Default
+                    $product->product_unit = 'pcs'; // Default
+                    $product->product_quantity = 0; // Default
+                    $product->product_cost = 0; // Default
+                    $product->product_price = 0; // Default
+                    $product->product_stock_alert = 10; // Default
+                    $product->product_name = 'New Product ' . $identifier; // Placeholder name
+                    Log::info("Row {$rowNumber}: Creating new product with {$identifierType} '{$identifier}'", ['product_data' => $product->toArray()]);
+                }
+
                 
-                // Prepare update data
-                $updateData = [];
+                // Prepare product data
+                $productData = [];
                 
-                // Update name if provided
+                // Process name (required for updates)
                 if (isset($columnMap['name']) && isset($row[$columnMap['name']]) && !empty(trim($row[$columnMap['name']]))) {
-                    $updateData['product_name'] = trim($row[$columnMap['name']]);
+                    $productData['product_name'] = trim($row[$columnMap['name']]);
                 }
                 
-                // Update cost if provided
+                // Process cost
                 if (isset($columnMap['cost']) && isset($row[$columnMap['cost']]) && !empty(trim($row[$columnMap['cost']]))) {
                     $cost = str_replace(',', '', trim($row[$columnMap['cost']]));
                     if (is_numeric($cost)) {
-                        $updateData['product_cost'] = $cost * 100; // Convert to cents
+                        $productData['product_cost'] = $cost * 100; // Convert to cents
                     }
                 }
+                // Add missing required fields for new products
+                // These are not needed for updates unless specific columns are explicitly present in CSV
                 
-                // Update price if provided
+                // Process price
                 if (isset($columnMap['price']) && isset($row[$columnMap['price']]) && !empty(trim($row[$columnMap['price']]))) {
                     $price = str_replace(',', '', trim($row[$columnMap['price']]));
                     if (is_numeric($price)) {
-                        $updateData['product_price'] = $price * 100; // Convert to cents
+                        $productData['product_price'] = $price * 100; // Convert to cents
                     }
                 }
                 
-                // Update quantity if provided
+                // Process quantity
                 if (isset($columnMap['quantity']) && isset($row[$columnMap['quantity']]) && !empty(trim($row[$columnMap['quantity']]))) {
                     $quantity = str_replace(',', '', trim($row[$columnMap['quantity']]));
                     if (is_numeric($quantity)) {
-                        $updateData['product_quantity'] = (int)$quantity;
+                        $productData['product_quantity'] = (int)$quantity;
                     }
                 }
                 
-                // Update unit if provided
+                // Process unit
                 if (isset($columnMap['unit']) && isset($row[$columnMap['unit']]) && !empty(trim($row[$columnMap['unit']]))) {
-                    $updateData['product_unit'] = trim($row[$columnMap['unit']]);
+                    $productData['product_unit'] = trim($row[$columnMap['unit']]);
                 }
                 
-                // Update category if provided
+                // Process category
                 if (isset($columnMap['category']) && isset($row[$columnMap['category']]) && !empty(trim($row[$columnMap['category']]))) {
                     $categoryName = trim($row[$columnMap['category']]);
                     $category = Category::where('category_name', $categoryName)->first();
+                    
                     if ($category) {
-                        $updateData['category_id'] = $category->id;
+                        $productData['category_id'] = $category->id;
+                    } else {
+                        // If category doesn't exist, add an error and skip
+                        $errors[] = "Row {$rowNumber}: Category '{$categoryName}' not found. Product not processed.";
+                        $errorCount++;
+                        continue;
                     }
                 }
                 
-                // Update GTIN if provided and different
+                // Process GTIN
                 if (isset($columnMap['gtin']) && isset($row[$columnMap['gtin']]) && !empty(trim($row[$columnMap['gtin']]))) {
                     $gtin = trim($row[$columnMap['gtin']]);
                     if ($product->product_gtin !== $gtin) {
-                        $updateData['product_gtin'] = $gtin;
+                        $productData['product_gtin'] = $gtin;
                     }
                 }
                 
-                // Update SKU if provided and different
+                // Process SKU
                 if (isset($columnMap['sku']) && isset($row[$columnMap['sku']]) && !empty(trim($row[$columnMap['sku']]))) {
                     $sku = trim($row[$columnMap['sku']]);
                     if ($product->product_sku !== $sku) {
-                        // Check if new SKU is unique
+                        // Check if SKU is unique (only if changing SKU for existing product)
                         $existingProduct = Product::where('product_sku', $sku)->where('id', '!=', $product->id)->first();
+                        
                         if (!$existingProduct) {
-                            $updateData['product_sku'] = $sku;
+                            $productData['product_sku'] = $sku;
+                        } else {
+                            $errors[] = "Row {$rowNumber}: SKU '{$sku}' already exists for another product. Product not updated.";
+                            $errorCount++;
+                            continue;
                         }
                     }
                 }
                 
-                // Update product if there's data to update
-                if (!empty($updateData)) {
-                    try {
-                        $product->update($updateData);
-                        $successCount++;
-                    } catch (\Exception $e) {
-                        $errors[] = "Row {$rowNumber}: Error updating product - " . $e->getMessage();
-                        $errorCount++;
+                // Apply data to product model
+                foreach ($productData as $key => $value) {
+                    $product->$key = $value;
+                }
+
+                try {
+                    if ($isNewProduct) {
+                        $product->save(); // Save new product
+                        Log::info("Row {$rowNumber}: Successfully created new product with ID: {$product->id}", ['product_data' => $product->toArray()]);
+                    } else {
+                        $product->update($productData); // Update existing product
+                        Log::info("Row {$rowNumber}: Successfully updated product with ID: {$product->id}", ['product_data' => $productData]);
                     }
-                } else {
-                    $errors[] = "Row {$rowNumber}: No valid data to update";
+                    $successCount++;
+                } catch (\Exception $e) {
+                    Log::error("Row {$rowNumber}: Error processing product - " . $e->getMessage(), ['product_data' => $product->toArray()]);
+                    $errors[] = "Row {$rowNumber}: Error processing product - " . $e->getMessage();
                     $errorCount++;
                 }
             }
