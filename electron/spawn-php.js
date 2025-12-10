@@ -20,13 +20,33 @@ export function startPhpServer(options = {}) {
     try {
       console.log('[PHP] Starting server:', { appRoot, host, port });
       
-      // Use 'php artisan serve' via system PHP
       const args = ['artisan', 'serve', '--host=' + host, '--port=' + port, '--env=production'];
 
-      phpProcess = spawn('php', args, {
+      // Try to find PHP - check common locations on Windows
+      let phpExe = 'php';
+      const potentialPaths = [
+        'php', // PATH environment
+        path.join(process.env.PROGRAMFILES || 'C:\\Program Files', 'PHP', 'php.exe'),
+        path.join(process.env['PROGRAMFILES(X86)'] || 'C:\\Program Files (x86)', 'PHP', 'php.exe'),
+        'C:\\php\\php.exe',
+        path.join(appRoot, 'php', 'php.exe'),
+      ];
+
+      for (const candidate of potentialPaths) {
+        if (fs.existsSync(candidate)) {
+          phpExe = candidate;
+          console.log('[PHP] Found PHP at:', phpExe);
+          break;
+        }
+      }
+
+      console.log('[PHP] Using PHP executable:', phpExe);
+
+      phpProcess = spawn(phpExe, args, {
         stdio: ['ignore', 'pipe', 'pipe'],
         windowsHide: true,
         cwd: appRoot,
+        shell: true, // Use shell to handle PATH resolution better
       });
 
       console.log('[PHP] Process spawned with PID:', phpProcess.pid);
@@ -35,10 +55,10 @@ export function startPhpServer(options = {}) {
       const timeout = setTimeout(() => {
         if (!started) {
           started = true;
-          console.log('[PHP] Startup timeout reached, assuming ready');
+          console.log('[PHP] Startup timeout reached, assuming ready (PID: ' + phpProcess.pid + ')');
           resolve({ pid: phpProcess.pid });
         }
-      }, 4000);
+      }, 5000);
 
       const onData = (buf) => {
         const s = buf.toString();
@@ -53,7 +73,7 @@ export function startPhpServer(options = {}) {
 
       phpProcess.stdout.on('data', onData);
       phpProcess.stderr.on('data', (d) => {
-        console.log('[PHP Error]', d.toString().trim());
+        console.log('[PHP Stderr]', d.toString().trim());
         onData(d);
       });
 
