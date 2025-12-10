@@ -13,10 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('products', function (Blueprint $table) {
-            $table->unsignedBigInteger('brand_id')->nullable()->after('category_id');
-            $table->foreign('brand_id')->references('id')->on('brands')->nullOnDelete();
-        });
+        // Only add the column if it doesn't already exist (prevents duplicate column errors
+        // when migrations run multiple times on SQLite or when partial runs occurred).
+        if (!Schema::hasColumn('products', 'brand_id')) {
+            Schema::table('products', function (Blueprint $table) {
+                $table->unsignedBigInteger('brand_id')->nullable()->after('category_id');
+                $table->foreign('brand_id')->references('id')->on('brands')->nullOnDelete();
+            });
+        }
     }
 
     /**
