@@ -42,8 +42,7 @@ function createMainWindow() {
     console.error('[Electron] Failed to load URL:', err);
   });
   
-  // Open DevTools for debugging
-  mainWindow.webContents.openDevTools();
+  // Uncomment to debug: mainWindow.webContents.openDevTools();
   
   mainWindow.on('closed', () => {
     mainWindow = null;
