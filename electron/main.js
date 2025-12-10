@@ -37,7 +37,14 @@ function createMainWindow() {
 
   // Load the bundled Laravel app via the embedded server
   const url = 'http://127.0.0.1:8000';
-  mainWindow.loadURL(url).catch((err) => console.error('Failed to load URL', err));
+  console.log('[Electron] Loading URL:', url);
+  mainWindow.loadURL(url).catch((err) => {
+    console.error('[Electron] Failed to load URL:', err);
+  });
+  
+  // Open DevTools for debugging
+  mainWindow.webContents.openDevTools();
+  
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -45,15 +52,20 @@ function createMainWindow() {
 
 app.whenReady().then(async () => {
   try {
+    console.log('[Electron] App ready, starting PHP server...');
     await startPhpServer({
       bundlePath: path.join(process.resourcesPath || process.cwd(), 'resources', 'bundle'),
       port: 8000,
     });
+    console.log('[Electron] PHP server started');
   } catch (e) {
-    console.error('Failed to start bundled PHP', e);
+    console.error('[Electron] Failed to start PHP:', e);
   }
 
+  console.log('[Electron] Creating main window...');
   createMainWindow();
+  console.log('[Electron] Main window created, loading URL...');
+  
   // Check for updates in background (non-blocking)
   autoUpdater.checkForUpdatesAndNotify().catch((err) => {
     console.warn('Auto-updater check failed:', err);
