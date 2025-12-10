@@ -20,6 +20,9 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -551,18 +554,48 @@ class ProductController extends Controller
                     $productData['product_unit'] = trim($row[$columnMap['unit']]);
                 }
                 
-                // Process category - must match existing category (case-insensitive). If not found, row fails.
+                // Process category - must match an existing category. Try several matching strategies (id, code, exact name, partial name).
                 if (isset($columnMap['category']) && isset($row[$columnMap['category']]) && !empty(trim($row[$columnMap['category']]))) {
-                    $categoryName = trim($row[$columnMap['category']]);
+                    $categoryInput = trim($row[$columnMap['category']]);
+                    $category = null;
 
-                    // Try case-insensitive match first
-                    $category = Category::whereRaw('LOWER(category_name) = ?', [strtolower($categoryName)])->first();
+                    // If numeric, try by ID first
+                    if (is_numeric($categoryInput)) {
+                        $category = Category::find((int)$categoryInput);
+                    }
+
+                    // Try by category code
+                    if (!$category) {
+                        $category = Category::where('category_code', $categoryInput)->first();
+                    }
+
+                    // Try exact case-insensitive name match
+                    if (!$category) {
+                        $category = Category::whereRaw('LOWER(category_name) = ?', [strtolower($categoryInput)])->first();
+                    }
+
+                    // Try partial match (last resort)
+                    if (!$category) {
+                        $category = Category::whereRaw('LOWER(category_name) LIKE ?', ['%' . strtolower($categoryInput) . '%'])->first();
+                    }
 
                     if (!$category) {
-                        $errors[] = "Row {$rowNumber}: Category '{$categoryName}' not found. Product not processed.";
-                        $errorCount++;
-                        Log::info("Row {$rowNumber}: Category '{$categoryName}' not found, skipping product.");
-                        continue;
+                        // Auto-create missing category (user requested auto-create)
+                        $newCategoryData = ['category_name' => $categoryInput];
+                        if (Schema::hasColumn('categories', 'category_code')) {
+                            // Generate a reasonably unique code: CA_<timestamp><3rand>
+                            $newCategoryData['category_code'] = 'CA_' . date('YmdHis') . strtoupper(Str::random(3));
+                        }
+
+                        try {
+                            $category = Category::create($newCategoryData);
+                            Log::info("Row {$rowNumber}: Created new category '{$category->category_name}' (id: {$category->id}).");
+                        } catch (\Exception $e) {
+                            $errors[] = "Row {$rowNumber}: Category '{$categoryInput}' could not be created. Product not processed.";
+                            $errorCount++;
+                            Log::error("Row {$rowNumber}: Failed to create category '{$categoryInput}' - " . $e->getMessage());
+                            continue;
+                        }
                     }
 
                     $productData['category_id'] = $category->id;
@@ -614,6 +647,18 @@ class ProductController extends Controller
                     $product->$key = $value;
                 }
 
+                // Defensive check: if DB requires category_id and we don't have it, skip before hitting DB constraint
+                if (Schema::hasColumn('products', 'category_id')) {
+                    $hasCategoryOnModel = isset($productData['category_id']) && !empty($productData['category_id']);
+                    $existingCategoryOnModel = isset($product->category_id) && !empty($product->category_id);
+                    if (!$hasCategoryOnModel && !$existingCategoryOnModel) {
+                        $errors[] = "Row {$rowNumber}: Missing valid category_id before save. Product not processed.";
+                        $errorCount++;
+                        Log::info("Row {$rowNumber}: Missing category_id, skipping to avoid DB constraint violation.");
+                        continue;
+                    }
+                }
+
                 try {
                     if ($isNewProduct) {
                         $product->save(); // Save new product
@@ -623,6 +668,11 @@ class ProductController extends Controller
                         Log::info("Row {$rowNumber}: Successfully updated product with ID: {$product->id}", ['product_data' => $productData]);
                     }
                     $successCount++;
+                } catch (QueryException $qe) {
+                    $msg = $qe->getMessage();
+                    Log::error("Row {$rowNumber}: DB error processing product - " . $msg, ['product_data' => $product->toArray()]);
+                    $errors[] = "Row {$rowNumber}: Database error processing product. Check category and required fields.";
+                    $errorCount++;
                 } catch (\Exception $e) {
                     Log::error("Row {$rowNumber}: Error processing product - " . $e->getMessage(), ['product_data' => $product->toArray()]);
                     $errors[] = "Row {$rowNumber}: Error processing product - " . $e->getMessage();
