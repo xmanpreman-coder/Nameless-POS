@@ -9,32 +9,50 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
+        "build:electron": "vite build && electron-builder --win portable",
+        "build:electron:debug": "vite build && electron .",
         "dist": "electron-builder",
         "dist:portable": "electron-builder --win portable",
-        "dist:nosigint": "node build-nosigint.js",
-        "start": "electron ."
+        "dist:installer": "electron-builder --win nsis",
+        "dist:all": "electron-builder --win",
+        "start": "electron .",
+        "start:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+        "tauri": "tauri",
+        "tauri:dev": "tauri dev",
+        "tauri:build": "tauri build"
     },
     "devDependencies": {
         "@coreui/coreui": "^3.2.2",
         "@coreui/icons": "^1.0.1",
+        "@playwright/test": "^1.57.0",
+        "@tauri-apps/cli": "^2.9.5",
         "axios": "^1.13.2",
         "bootstrap": "^4.1.0",
+        "chrome-launcher": "^1.2.1",
+        "chrome-remote-interface": "^0.33.3",
         "electron": "^39.2.3",
-        "electron-builder": "^26.0.12",
+        "electron-builder": "^24.9.1",
         "laravel-mix": "^6.0.6",
-        "laravel-vite-plugin": "^0.7.8",
+        "laravel-vite-plugin": "^2.0.1",
         "popper.js": "^1.12",
         "sass": "^1.15.2",
-        "vite": "^4.4.7"
+        "vite": "^7.2.6",
+        "vite-plugin-pwa": "^0.17.4",
+        "workbox-cli": "^7.0.0"
     },
     "dependencies": {
+        "@tauri-apps/api": "^2.9.1",
+        "@tauri-apps/plugin-dialog": "^2.4.2",
+        "@tauri-apps/plugin-fs": "^2.4.4",
         "autoprefixer": "^10.3.1",
         "electron-log": "^5.4.3",
-        "electron-updater": "^6.6.2"
+        "electron-updater": "^6.6.2",
+        "jquery": "^3.7.1"
     },
     "build": {
         "appId": "com.nameless.pos",
         "productName": "Nameless POS",
+        "afterPack": "./afterPack.cjs",
         "files": [
             "electron/**/*",
             "node_modules/**/*"
@@ -62,12 +80,12 @@
             "verifyUpdateCodeSignature": false
         },
         "nsis": {
-            "oneClick": false,
-            "allowToChangeInstallationDirectory": true,
-            "createDesktopShortcut": true,
-            "createStartMenuShortcut": true,
-            "shortcutName": "Nameless POS"
-        }
+                "oneClick": false,
+                "allowToChangeInstallationDirectory": true,
+                "createDesktopShortcut": true,
+                "createStartMenuShortcut": true,
+                "shortcutName": "Nameless POS"
+            }
     },
     "type": "module"
 }

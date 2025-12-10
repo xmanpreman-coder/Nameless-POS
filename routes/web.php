@@ -10,7 +10,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('auth.login');
+    return view('auth.login');
 })->middleware('guest');
+
+// Language Switch
+Route::get('lang/{locale}', [App\Http\Controllers\LanguageController::class, 'switch'])->name('lang.switch');
 
 // Printer Settings Routes (Multi-Printer Management)
 Route::middleware(['auth'])->group(function () {
@@ -31,6 +35,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [App\Http\Controllers\UserProfileController::class, 'show'])->name('profile.show');
     Route::patch('/profile', [App\Http\Controllers\UserProfileController::class, 'update'])->name('app_profile.update');
 });
+
+// Brand DataTables API route
+Route::get('/brands-data', [Modules\Brand\Http\Controllers\BrandController::class, 'api'])->name('brands.api');
 
 Auth::routes(['register' => false]);
 

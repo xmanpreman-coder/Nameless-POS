@@ -10,6 +10,7 @@
 
 </ul>
 <ul class="c-header-nav ml-auto mr-4">
+    <!-- Language selector removed (reserved for future feature) -->
     @can('create_pos_sales')
     <li class="c-header-nav-item mr-3">
         <a class="btn btn-primary btn-pill {{ request()->routeIs('app.pos.index') ? 'disabled' : '' }}" href="{{ route('app.pos.index') }}">
@@ -51,12 +52,12 @@
            aria-haspopup="true" aria-expanded="false">
             <div class="c-avatar mr-2">
                 @php
-                    $avatarUrl = auth()->user()->getFirstMediaUrl('avatars');
+                    $avatarUrl = auth()->check() ? auth()->user()->getFirstMediaUrl('avatars') : null;
                 @endphp
                 <img class="c-avatar rounded-circle" src="{{ $avatarUrl ?: asset('images/default-avatar.svg') }}" alt="Profile Image" onerror="this.onerror=null;this.src='{{ asset('images/default-avatar.svg') }}';">
             </div>
             <div class="d-flex flex-column">
-                <span class="font-weight-bold">{{ auth()->user()->name }}</span>
+                <span class="font-weight-bold">{{ auth()->check() ? auth()->user()->name : 'Guest' }}</span>
                 <span class="font-italic">Online <i class="bi bi-circle-fill text-success" style="font-size: 11px;"></i></span>
             </div>
         </a>

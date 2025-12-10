@@ -8,6 +8,7 @@ use Modules\Product\Notifications\NotifyQuantityAlert;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Modules\Product\Entities\Brand;
 
 class Product extends Model implements HasMedia
 {
@@ -29,8 +30,16 @@ class Product extends Model implements HasMedia
 
     public function registerMediaConversions(Media $media = null): void {
         $this->addMediaConversion('thumb')
-            ->width(50)
-            ->height(50);
+            ->width(100)
+            ->height(100)
+            ->format('webp')
+            ->optimize();
+
+        $this->addMediaConversion('preview')
+            ->width(800)
+            ->height(800)
+            ->format('webp')
+            ->optimize();
     }
 
     public function setProductCostAttribute($value) {
@@ -47,5 +56,9 @@ class Product extends Model implements HasMedia
 
     public function getProductPriceAttribute($value) {
         return ($value / 100);
+    }
+
+    public function brand() {
+        return $this->belongsTo(Brand::class, 'brand_id', 'id');
     }
 }

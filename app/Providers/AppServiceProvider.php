@@ -25,5 +25,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         Model::preventLazyLoading(!app()->isProduction());
+
+        // Manually load Brand module migrations and views
+        $this->loadMigrationsFrom(module_path('Brand', 'Database/Migrations'));
+        $this->loadViewsFrom(module_path('Brand', 'Resources/views'), 'brand');
     }
 }

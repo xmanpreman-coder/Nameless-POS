@@ -1,0 +1,7 @@
+Nameless.POS End User License Agreement (EULA) - Placeholder
+
+This is a placeholder license presented during installer setup. Replace this file with your official EULA before building production installers.
+
+By installing this software you agree to the terms provided by the licensor.
+
+Replace this text with your full EULA.

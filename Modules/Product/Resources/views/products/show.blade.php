@@ -103,9 +103,9 @@
                 <div class="card h-100">
                     <div class="card-body">
                         @forelse($product->getMedia('images') as $media)
-                            <img src="{{ $media->getUrl() }}" alt="Product Image" class="img-fluid img-thumbnail mb-2">
+                            <img src="{{ $media->getUrl('preview') }}" alt="Product Image" class="img-fluid img-thumbnail mb-2">
                         @empty
-                            <img src="{{ $product->getFirstMediaUrl('images') }}" alt="Product Image" class="img-fluid img-thumbnail mb-2">
+                            <img src="{{ $product->getFirstMediaUrl('images', 'preview') }}" alt="Product Image" class="img-fluid img-thumbnail mb-2">
                         @endforelse
                     </div>
                 </div>

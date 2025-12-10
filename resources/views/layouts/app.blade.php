@@ -35,8 +35,29 @@
 
     @include('includes.main-js')
     
+    <!-- Stack for custom scripts -->
+    @stack('scripts')
+    
+    <!-- PWA: manifest and service worker registration -->
+    <link rel="manifest" href="{{ asset('manifest.json') }}">
+    <meta name="theme-color" content="#2d6cdf">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(reg) {
+                    console.log('Service worker registered.', reg);
+                }).catch(function(err) {
+                    console.warn('Service worker registration failed:', err);
+                });
+            });
+        }
+    </script>
+    
+    <!-- Tauri Download Helper (Load for Tauri environment) -->
+    <script src="{{ asset('js/tauri-download-helper.js') }}"></script>
+    
     <!-- Scanner Utils (Load first) -->
-    <script src="{{ asset('js/scanner-utils.js') }}
+    <script src="{{ asset('js/scanner-utils.js') }}"></script>
     
     <!-- Electron Scanner Bridge (Load for Electron environment) -->
     <script src="{{ asset('js/electron-scanner.js') }}"></script>
@@ -100,35 +121,38 @@
                 });
             }
             
-            // Fix sidebar active state issues - using requestAnimationFrame for better timing
+            // Fix sidebar active state issues - mark only direct links as active and open dropdowns
             requestAnimationFrame(function() {
-                // Reset all sidebar menu items to proper state based on current route
                 const currentUrl = window.location.href;
                 const sidebarItems = document.querySelectorAll('.c-sidebar-nav-item');
-                
+
                 sidebarItems.forEach(function(item) {
-                    const links = item.querySelectorAll('a');
+                    // Only consider the direct anchor of this item (avoid child anchors inside dropdowns)
+                    const directAnchor = item.querySelector(':scope > a');
                     let isActive = false;
-                    
-                    links.forEach(function(link) {
-                        if (link.href === currentUrl || currentUrl.includes(link.getAttribute('href'))) {
-                            isActive = true;
+
+                    if (directAnchor) {
+                        const href = directAnchor.getAttribute('href');
+                        // ignore toggle anchors (href="#")
+                        if (href && href !== '#') {
+                            const absHref = directAnchor.href;
+                            if (absHref === currentUrl || (href !== '/' && currentUrl.includes(href))) {
+                                isActive = true;
+                            }
                         }
-                    });
-                    
-                    // Remove c-active class from all items first
+                    }
+
+                    // Remove c-active class from item first
                     item.classList.remove('c-active');
-                    
-                    // Add c-active only to the current page's item
                     if (isActive) {
                         item.classList.add('c-active');
                     }
                 });
-                
-                // Also fix dropdown menu states
+
+                // Open dropdowns when any of their child items are active (but don't mark parent as active)
                 const dropdownItems = document.querySelectorAll('.c-sidebar-nav-dropdown');
                 dropdownItems.forEach(function(dropdown) {
-                    const activeChild = dropdown.querySelector('.c-sidebar-nav-dropdown-items .c-sidebar-nav-item .c-sidebar-nav-link.c-active');
+                    const activeChild = dropdown.querySelector('.c-sidebar-nav-dropdown-items .c-sidebar-nav-item.c-active');
                     if (activeChild) {
                         dropdown.classList.add('c-show');
                     } else {

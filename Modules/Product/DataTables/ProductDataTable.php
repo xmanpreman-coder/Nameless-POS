@@ -15,13 +15,13 @@ class ProductDataTable extends DataTable
     public function dataTable($query)
     {
         return datatables()
-            ->eloquent($query)->with('category')
+            ->eloquent($query)->with('category')->with('brand')
             ->addColumn('action', function ($data) {
                 return view('product::products.partials.actions', compact('data'));
             })
             ->addColumn('product_image', function ($data) {
                 $url = $data->getFirstMediaUrl('images', 'thumb');
-                return '<img src="'.$url.'" border="0" width="50" class="img-thumbnail" align="center"/>';
+                return '<img src="'.$url.'" border="0" width="50" class="img-thumbnail" align="center" loading="lazy" />';
             })
             ->addColumn('product_price', function ($data) {
                 return format_currency($data->product_price);
@@ -32,12 +32,24 @@ class ProductDataTable extends DataTable
             ->addColumn('product_quantity', function ($data) {
                 return $data->product_quantity . ' ' . $data->product_unit;
             })
-            ->rawColumns(['product_image']);
+            ->rawColumns(['product_image', 'action']);
     }
 
     public function query(Product $model)
     {
-        return $model->newQuery()->with('category');
+        $query = $model->newQuery()->with('category')->with('brand');
+
+        // Filter by category
+        if (request()->has('category_id') && request('category_id') != '') {
+            $query->where('category_id', request('category_id'));
+        }
+
+        // Filter by brand
+        if (request()->has('brand_id') && request('brand_id') != '') {
+            $query->where('brand_id', request('brand_id'));
+        }
+
+        return $query;
     }
 
     public function html()
@@ -81,6 +93,10 @@ class ProductDataTable extends DataTable
 
             Column::make('category.category_name')
                 ->title('Category')
+                ->className('text-center align-middle'),
+
+            Column::make('brand.brand_name')
+                ->title('Brand')
                 ->className('text-center align-middle'),
 
             Column::make('product_sku')

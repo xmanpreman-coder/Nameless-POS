@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -27,6 +29,8 @@ Route::group(['middleware' => 'auth'], function () {
         ->name('payments-report.print');
     Route::get('/payments-report/export-csv', 'ReportsController@exportPaymentsReportCSV')
         ->name('payments-report.export-csv');
+    Route::get('/payments-report/export-excel', 'ReportsController@exportPaymentsReportExcel')
+        ->name('payments-report.export-excel');
     
     //Sales Report
     Route::get('/sales-report', 'ReportsController@salesReport')
@@ -35,6 +39,8 @@ Route::group(['middleware' => 'auth'], function () {
         ->name('sales-report.print');
     Route::get('/sales-report/export-csv', 'ReportsController@exportSalesReportCSV')
         ->name('sales-report.export-csv');
+    Route::get('/sales-report/export-excel', 'ReportsController@exportSalesReportExcel')
+        ->name('sales-report.export-excel');
     
     //Purchases Report
     Route::get('/purchases-report', 'ReportsController@purchasesReport')
@@ -43,6 +49,8 @@ Route::group(['middleware' => 'auth'], function () {
         ->name('purchases-report.print');
     Route::get('/purchases-report/export-csv', 'ReportsController@exportPurchasesReportCSV')
         ->name('purchases-report.export-csv');
+    Route::get('/purchases-report/export-excel', 'ReportsController@exportPurchasesReportExcel')
+        ->name('purchases-report.export-excel');
     
     //Sales Return Report
     Route::get('/sales-return-report', 'ReportsController@salesReturnReport')
@@ -51,6 +59,8 @@ Route::group(['middleware' => 'auth'], function () {
         ->name('sales-return-report.print');
     Route::get('/sales-return-report/export-csv', 'ReportsController@exportSalesReturnReportCSV')
         ->name('sales-return-report.export-csv');
+    Route::get('/sales-return-report/export-excel', 'ReportsController@exportSalesReturnReportExcel')
+        ->name('sales-return-report.export-excel');
     
     //Purchases Return Report
     Route::get('/purchases-return-report', 'ReportsController@purchasesReturnReport')
@@ -59,4 +69,6 @@ Route::group(['middleware' => 'auth'], function () {
         ->name('purchases-return-report.print');
     Route::get('/purchases-return-report/export-csv', 'ReportsController@exportPurchasesReturnReportCSV')
         ->name('purchases-return-report.export-csv');
+    Route::get('/purchases-return-report/export-excel', 'ReportsController@exportPurchasesReturnReportExcel')
+        ->name('purchases-return-report.export-excel');
 });

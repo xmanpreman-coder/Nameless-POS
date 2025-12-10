@@ -111,10 +111,7 @@
                 </div>
             </div>
 
-            <p class="text-center mt-5 lead">
-                Developed By
-                <a href="https://ubed666.com" class="font-weight-bold text-primary">Ubed666</a>
-            </p>
+         
         </div>
     </div>
 </div>

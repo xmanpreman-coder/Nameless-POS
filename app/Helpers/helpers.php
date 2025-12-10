@@ -32,6 +32,41 @@ if (!function_exists('format_currency')) {
     }
 }
 
+if (!function_exists('format_currency_short')) {
+    /**
+     * Format currency with abbreviated suffix for large numbers
+     * e.g., 3.500.000 -> Rp 3,5 Jt, 936.193.750 -> Rp 936 Jt
+     */
+    function format_currency_short($value) {
+        $settings = settings();
+        $symbol = $settings->currency->symbol;
+        $absValue = abs((float) $value);
+        
+        if ($absValue >= 1000000000) {
+            // Miliar (Billion)
+            $formatted = number_format($absValue / 1000000000, 1, ',', '.');
+            $suffix = 'M';
+        } elseif ($absValue >= 1000000) {
+            // Juta (Million)
+            $formatted = number_format($absValue / 1000000, 1, ',', '.');
+            $suffix = 'Jt';
+        } elseif ($absValue >= 1000) {
+            // Ribu (Thousand)
+            $formatted = number_format($absValue / 1000, 1, ',', '.');
+            $suffix = 'Rb';
+        } else {
+            $formatted = number_format($absValue, 0, ',', '.');
+            $suffix = '';
+        }
+        
+        // Remove trailing ,0 if exists
+        $formatted = preg_replace('/,0$/', '', $formatted);
+        
+        $sign = $value < 0 ? '-' : '';
+        return $sign . $symbol . $formatted . ($suffix ? ' ' . $suffix : '');
+    }
+}
+
 if (!function_exists('make_reference_id')) {
     function make_reference_id($prefix, $number) {
         $padded_text = $prefix . '-' . str_pad($number, 5, 0, STR_PAD_LEFT);

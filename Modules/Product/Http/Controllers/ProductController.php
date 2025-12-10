@@ -50,7 +50,7 @@ class ProductController extends Controller
     public function exportCsv(Request $request) {
         abort_if(Gate::denies('access_products'), 403);
         
-        $products = Product::with('category')->get();
+        $products = Product::with('category', 'brand')->get();
         
         $filename = 'products-' . date('Y-m-d') . '.csv';
         $headers = [
@@ -64,12 +64,13 @@ class ProductController extends Controller
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
             
             // Headers
-            fputcsv($file, ['Category', 'SKU', 'GTIN', 'Name', 'Cost', 'Price', 'Quantity', 'Unit']);
+            fputcsv($file, ['Category', 'Brand', 'SKU', 'GTIN', 'Name', 'Cost', 'Price', 'Quantity', 'Unit']);
             
             // Data
             foreach ($products as $product) {
                 fputcsv($file, [
                     $product->category->category_name ?? '',
+                    $product->brand->brand_name ?? '',
                     $product->product_sku ?? '',
                     $product->product_gtin ?? '',
                     $product->product_name,
@@ -234,33 +235,35 @@ class ProductController extends Controller
             return response()->download($enhancedTemplate, 'product_import_template_enhanced.csv');
         }
 
-        // Fallback to old template generation
-        $filename = 'product_template.csv';
+        // Generate template CSV content with proper encoding
+        $filename = 'product_import_template.csv';
         
-        $headers = [
-            'SKU', 'GTIN', 'Name', 'Cost', 'Price', 'Quantity', 'Unit', 'Category', 'Stock_Alert', 'Note'
-        ];
-
+        // Create CSV content in memory
+        $csvContent = "";
+        
+        // Add BOM for Excel compatibility
+        $csvContent .= "\xEF\xBB\xBF";
+        
+        // Headers
+        $headers = ['Category', 'Brand', 'SKU', 'GTIN', 'Name', 'Cost', 'Price', 'Quantity', 'Unit'];
+        $csvContent .= implode(',', $headers) . "\r\n";
+        
+        // Sample data
         $sampleData = [
-            ['PRD001', '1234567890123', 'Sample Product 1', '50000.00', '75000.00', '100', 'pcs', 'Electronics', '10', 'Sample note'],
-            ['PRD002', '1234567890124', 'Sample Product 2', '25000.00', '35000.00', '50', 'pcs', 'Books', '15', 'Another sample'],
+            ['Electronics', 'Samsung', 'PRD001', '1234567890123', 'Sample Product 1', '50000.00', '75000.00', '100', 'pcs'],
+            ['Books', 'Gramedia', 'PRD002', '1234567890124', 'Sample Product 2', '25000.00', '35000.00', '50', 'pcs'],
         ];
-
-        $csvContent = "\xEF\xBB\xBF";
-        $csvContent .= implode(';', $headers) . "\r\n";
-
+        
         foreach ($sampleData as $row) {
-            $escaped = array_map(function($v){
-                if (is_null($v)) return '';
-                return str_replace(';', ',', $v);
-            }, $row);
-            $csvContent .= implode(';', $escaped) . "\r\n";
+            $csvContent .= implode(',', array_map(function($v) {
+                return '"' . str_replace('"', '""', $v) . '"';
+            }, $row)) . "\r\n";
         }
-
+        
         return response($csvContent)
             ->header('Content-Type', 'text/csv; charset=UTF-8')
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
-            ->header('Content-Transfer-Encoding', 'binary');
+            ->header('Content-Length', strlen($csvContent));
     }
 
     /**
@@ -293,6 +296,46 @@ class ProductController extends Controller
             private $data;
             private $headings;
             public function __construct($data, $headings) { $this->data = $data; $this->headings = $headings; }
+            public function array(): array { return $this->data; }
+            public function headings(): array { return $this->headings; }
+        };
+
+        return Excel::download($export, $filename);
+    }
+
+    /**
+     * Download Excel template with only headers (no sample data)
+     * Headers match exactly with database columns for bulk import
+     */
+    public function downloadHeaderOnlyTemplate()
+    {
+        abort_if(Gate::denies('access_products'), 403);
+
+        $filename = 'product_header_template.xlsx';
+
+        // Headers exactly matching database and DataTable columns
+        $headers = [
+            'Category',
+            'Brand', 
+            'SKU',
+            'GTIN',
+            'Name',
+            'Cost',
+            'Price',
+            'Quantity',
+            'Unit'
+        ];
+
+        // Empty data array - just headers
+        $sampleData = [];
+
+        $export = new class($sampleData, $headers) implements FromArray, WithHeadings {
+            private $data;
+            private $headings;
+            public function __construct($data, $headings) { 
+                $this->data = $data; 
+                $this->headings = $headings; 
+            }
             public function array(): array { return $this->data; }
             public function headings(): array { return $this->headings; }
         };
@@ -354,7 +397,7 @@ class ProductController extends Controller
             $header = array_map('strtolower', $header);
             
             // Expected columns and common aliases
-            $expectedColumns = ['sku', 'gtin', 'name', 'cost', 'price', 'quantity', 'unit', 'category'];
+            $expectedColumns = ['sku', 'gtin', 'name', 'cost', 'price', 'quantity', 'unit', 'category', 'brand'];
             $aliases = [
                 'sku' => ['sku', 'product_sku', 'product sku', 'product_code', 'product code', 'code', 'barcode'],
                 'gtin' => ['gtin', 'product_gtin', 'product gtin', 'ean', 'upc'],
@@ -364,6 +407,7 @@ class ProductController extends Controller
                 'quantity' => ['quantity', 'qty', 'product_quantity', 'product quantity'],
                 'unit' => ['unit', 'product_unit', 'product unit'],
                 'category' => ['category', 'cat', 'category_name', 'category name'],
+                'brand' => ['brand', 'brand_name', 'brand name'],
             ];
 
             $columnMap = [];
@@ -384,6 +428,12 @@ class ProductController extends Controller
             // Check if SKU or GTIN exists (required for update)
             if (!isset($columnMap['sku']) && !isset($columnMap['gtin'])) {
                 toast('CSV must contain SKU or GTIN column for product identification!', 'error');
+                return redirect()->back();
+            }
+
+            // Require Category column: categories must match existing registered categories
+            if (!isset($columnMap['category'])) {
+                toast('CSV must contain a "Category" column. Categories are required and must match registered categories.', 'error');
                 return redirect()->back();
             }
             
@@ -501,18 +551,36 @@ class ProductController extends Controller
                     $productData['product_unit'] = trim($row[$columnMap['unit']]);
                 }
                 
-                // Process category
+                // Process category - must match existing category (case-insensitive). If not found, row fails.
                 if (isset($columnMap['category']) && isset($row[$columnMap['category']]) && !empty(trim($row[$columnMap['category']]))) {
                     $categoryName = trim($row[$columnMap['category']]);
-                    $category = Category::where('category_name', $categoryName)->first();
-                    
-                    if ($category) {
-                        $productData['category_id'] = $category->id;
-                    } else {
-                        // If category doesn't exist, add an error and skip
+
+                    // Try case-insensitive match first
+                    $category = Category::whereRaw('LOWER(category_name) = ?', [strtolower($categoryName)])->first();
+
+                    if (!$category) {
                         $errors[] = "Row {$rowNumber}: Category '{$categoryName}' not found. Product not processed.";
                         $errorCount++;
+                        Log::info("Row {$rowNumber}: Category '{$categoryName}' not found, skipping product.");
                         continue;
+                    }
+
+                    $productData['category_id'] = $category->id;
+                } else {
+                    $errors[] = "Row {$rowNumber}: Category is required. Product not processed.";
+                    $errorCount++;
+                    continue;
+                }
+
+                // Process brand (optional). If brand column exists and value provided, try match existing brand case-insensitive.
+                if (isset($columnMap['brand']) && isset($row[$columnMap['brand']]) && !empty(trim($row[$columnMap['brand']]))) {
+                    $brandName = trim($row[$columnMap['brand']]);
+                    $brand = Brand::whereRaw('LOWER(brand_name) = ?', [strtolower($brandName)])->first();
+                    if ($brand) {
+                        $productData['brand_id'] = $brand->id;
+                    } else {
+                        // Brand is optional — do not create brand automatically. Leave brand_id null and log.
+                        Log::info("Row {$rowNumber}: Brand '{$brandName}' not found; leaving brand empty for product.");
                     }
                 }
                 

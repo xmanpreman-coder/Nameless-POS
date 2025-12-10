@@ -5,7 +5,7 @@
 </li>
 
 @can('access_products')
-<li class="c-sidebar-nav-item c-sidebar-nav-dropdown {{ request()->routeIs('products.*') || request()->routeIs('product-categories.*') ? 'c-show' : '' }}">
+<li class="c-sidebar-nav-item c-sidebar-nav-dropdown {{ request()->routeIs('products.*') || request()->routeIs('product-categories.*') || request()->routeIs('brands.*') ? 'c-show' : '' }}">
     <a class="c-sidebar-nav-link c-sidebar-nav-dropdown-toggle" href="#">
         <i class="c-sidebar-nav-icon bi bi-journal-bookmark" style="line-height: 1;"></i> Products
     </a>
@@ -14,6 +14,13 @@
         <li class="c-sidebar-nav-item">
             <a class="c-sidebar-nav-link {{ request()->routeIs('product-categories.*') ? 'c-active' : '' }}" href="@if(\Illuminate\Support\Facades\Route::has('product-categories.index')){{ route('product-categories.index') }}@else#@endif">
                 <i class="c-sidebar-nav-icon bi bi-collection" style="line-height: 1;"></i> Categories
+            </a>
+        </li>
+        @endcan
+        @can('access_brands')
+        <li class="c-sidebar-nav-item">
+            <a class="c-sidebar-nav-link {{ request()->routeIs('product-brands.*') ? 'c-active' : '' }}" href="@if(\Illuminate\Support\Facades\Route::has('product-brands.index')){{ route('product-brands.index') }}@else#@endif">
+                <i class="c-sidebar-nav-icon bi bi-tags" style="line-height: 1;"></i> Brands
             </a>
         </li>
         @endcan
@@ -36,13 +43,18 @@
                </a>
            </li>
         @endcan
+        <li class="c-sidebar-nav-item">
+            <a class="c-sidebar-nav-link {{ request()->routeIs('product-stock-alert.index') ? 'c-active' : '' }}" href="{{ route('product-stock-alert.index') }}">
+                <i class="c-sidebar-nav-icon bi bi-exclamation-triangle text-warning" style="line-height: 1;"></i> Stock Alert
+            </a>
+        </li>
     </ul>
 </li>
 @endcan
 
 @can('access_adjustments')
     <li class="c-sidebar-nav-item c-sidebar-nav-dropdown {{ request()->routeIs('adjustments.*') ? 'c-show' : '' }}">
-        <a class="c-sidebar-nav-link c-sidebar-nav-dropdown-toggle" href="#">
+        <a class="c-sidebar-nav-link c-sidebar-nav-dropdown-toggle {{ request()->routeIs('adjustments.create') || request()->routeIs('adjustments.index') ? '' : '' }}" href="#">
             <i class="c-sidebar-nav-icon bi bi-clipboard-check" style="line-height: 1;"></i> Stock Adjustments
         </a>
         <ul class="c-sidebar-nav-dropdown-items">

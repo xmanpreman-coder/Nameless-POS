@@ -9,6 +9,13 @@ import * as bootstrap from 'bootstrap';
 
 try {
     window.Popper = Popper;
+    // window.$ = window.jQuery = require('jquery'); // Add this line
+
+    // Check if jQuery is already loaded (from script tag)
+    // If not, load it.
+    if (!window.$ && !window.jQuery) {
+        window.$ = window.jQuery = require('jquery');
+    }
 } catch (e) {
     console.log(e);
 }

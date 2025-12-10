@@ -1,0 +1,12 @@
+﻿SKU;GTIN;Name;Cost;Price;Quantity;Unit;Category;Stock_Alert;Note
+ELC001;1234567890123;iPhone 14 Pro;12000000.00;15000000.00;50;pcs;Electronics;5;Flagship smartphone
+ELC002;1234567890124;Samsung Galaxy S23;10000000.00;13000000.00;30;pcs;Electronics;5;Android flagship
+ELC003;1234567890125;MacBook Air M2;18000000.00;22000000.00;20;pcs;Electronics;3;Laptop premium
+FSH001;2234567890123;T-Shirt Cotton;50000.00;85000.00;100;pcs;Fashion;20;Basic cotton t-shirt
+FSH002;2234567890124;Jeans Denim;150000.00;250000.00;80;pcs;Fashion;15;Classic blue jeans
+BK001;3234567890123;Programming Book;75000.00;125000.00;50;pcs;Books;10;Learn programming
+BK002;3234567890124;Novel Fiction;45000.00;75000.00;60;pcs;Books;15;Bestseller novel
+FB001;4234567890123;Coffee Arabica 1kg;80000.00;120000.00;200;kg;Food & Beverage;50;Premium coffee beans
+FB002;4234567890124;Mineral Water 600ml;3000.00;5000.00;500;pcs;Food & Beverage;100;Natural mineral water
+OFF001;5234567890123;A4 Paper 1 Ream;25000.00;35000.00;100;ream;Office Supplies;20;White printing paper
+OFF002;5234567890124;Ballpoint Pen Blue;2000.00;3500.00;200;pcs;Office Supplies;50;Smooth writing pen

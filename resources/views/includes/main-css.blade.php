@@ -1,8 +1,49 @@
 <!-- Dropezone CSS -->
 <link rel="stylesheet" href="{{ asset('css/dropzone.css') }}">
 <!-- CoreUI CSS -->
-@vite('resources/sass/app.scss')
-<link href="https://cdn.datatables.net/v/bs4/jszip-3.10.1/dt-1.13.5/b-2.4.1/b-html5-2.4.1/b-print-2.4.1/sl-1.7.0/datatables.min.css" rel="stylesheet">
+@php
+    $manifestPath = public_path('build/manifest.json');
+    $cssFile = null;
+    
+    if (file_exists($manifestPath)) {
+        $manifest = json_decode(file_get_contents($manifestPath), true);
+        
+        // Vite generates style.css as the entry, check that first
+        if (isset($manifest['style.css'])) {
+            $cssFile = $manifest['style.css']['file'] ?? null;
+        }
+        // Fallback: check for resources/sass/app.scss (if Vite config changes)
+        elseif (isset($manifest['resources/sass/app.scss'])) {
+            $cssFile = $manifest['resources/sass/app.scss']['file'] ?? null;
+        }
+        // Last resort: find any CSS entry in manifest
+        else {
+            foreach ($manifest as $key => $value) {
+                if (isset($value['file']) && (str_ends_with($key, '.css') || str_ends_with($value['file'], '.css'))) {
+                    $cssFile = $value['file'];
+                    break;
+                }
+            }
+        }
+    }
+@endphp
+
+@if($cssFile)
+    <link rel="stylesheet" href="{{ asset('build/' . $cssFile) }}">
+@else
+    {{-- Final fallback: try to find any CSS file in build/assets directory --}}
+    @php
+        $buildDir = public_path('build/assets');
+        if (is_dir($buildDir)) {
+            $cssFiles = glob($buildDir . '/style*.css');
+            if (!empty($cssFiles)) {
+                $cssFile = basename($cssFiles[0]);
+                echo '<link rel="stylesheet" href="' . asset('build/assets/' . $cssFile) . '">';
+            }
+        }
+    @endphp
+@endif
+<link href="{{ asset('css/datatables.min.css') }}" rel="stylesheet">
 <!-- Bootstrap Icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
 
@@ -40,7 +81,7 @@
         margin-top: 2px;
     }
     
-    /* Fix sidebar active state issues */
+    /* Fix sidebar active state issues - parent dropdown toggle should NOT be highlighted */
     .c-sidebar-nav-item:not(.c-active) .c-sidebar-nav-link {
         color: rgba(255, 255, 255, 0.7) !important;
         background: transparent !important;
@@ -49,6 +90,17 @@
     .c-sidebar-nav-item.c-active .c-sidebar-nav-link {
         color: #fff !important;
         background: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    /* Ensure dropdown toggles are NEVER highlighted */
+    .c-sidebar-nav-dropdown-toggle {
+        background: transparent !important;
+        color: rgba(255, 255, 255, 0.7) !important;
+    }
+    
+    .c-sidebar-nav-dropdown-toggle:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
     }
     
     /* Ensure sidebar is always clickable */
@@ -104,5 +156,54 @@
         @page {
             margin: 0.5in;
         }
+    }
+
+    /* --- GREEN THEME OVERRIDES (UD. SEHATI) --- */
+    :root {
+        --theme-primary: #28a745;       /* Success Green */
+        --theme-dark: #1e7e34;          /* Darker Green */
+        --theme-sidebar: #155724;       /* Dark Green for Sidebar */
+    }
+
+    /* Sidebar */
+    .c-sidebar {
+        background: var(--theme-sidebar) !important;
+    }
+    .c-sidebar .c-sidebar-brand {
+        background: rgba(0,0,0,0.1) !important;
+    }
+    .c-sidebar-nav-item.c-active .c-sidebar-nav-link {
+        background: var(--theme-primary) !important;
+        border-left: 4px solid #fff;
+    }
+
+    /* Buttons */
+    .btn-primary {
+        background-color: var(--theme-primary) !important;
+        border-color: var(--theme-primary) !important;
+    }
+    .btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+        background-color: var(--theme-dark) !important;
+        border-color: var(--theme-dark) !important;
+    }
+    
+    /* Links */
+    a {
+        color: var(--theme-primary);
+    }
+    a:hover {
+        color: var(--theme-dark);
+    }
+
+    /* Pagination */
+    .page-item.active .page-link {
+        background-color: var(--theme-primary) !important;
+        border-color: var(--theme-primary) !important;
+    }
+    
+    /* Form Controls */
+    .form-control:focus {
+        border-color: var(--theme-primary);
+        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
     }
 </style>

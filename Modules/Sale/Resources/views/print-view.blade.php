@@ -60,11 +60,30 @@
                 background: white !important;
             }
             
+            @php
+                $printerSettings = \App\Models\PrinterSetting::first();
+                $paperSize = $printerSettings?->receipt_paper_size ?? '80mm';
+            @endphp
+            
+            @if($paperSize == '58mm')
+            @page {
+                size: 58mm auto;
+                margin: 0;
+                padding: 0;
+            }
+            @elseif($paperSize == '80mm')
+            @page {
+                size: 80mm auto;
+                margin: 0;
+                padding: 0;
+            }
+            @else
             @page {
                 size: auto;
                 margin: 0;
                 padding: 0;
             }
+            @endif
             
             * {
                 font-size: 11px;

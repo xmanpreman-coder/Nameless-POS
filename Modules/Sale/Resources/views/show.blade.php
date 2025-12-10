@@ -178,10 +178,37 @@
             ? '{{ url("/purchases/print") }}/' + id
             : '{{ url("/quotations/print") }}/' + id;
         
-        const printWindow = window.open(url, '_blank', 'width=500,height=700');
-        printWindow.onload = function() {
+        // Remove existing print iframe if any
+        let existingFrame = document.getElementById('print-frame');
+        if (existingFrame) {
+            existingFrame.remove();
+        }
+        
+        // Create hidden iframe for printing (bypasses popup blocker in WebView/Tauri)
+        const iframe = document.createElement('iframe');
+        iframe.id = 'print-frame';
+        iframe.name = 'print-frame';
+        iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:500px;height:700px;border:none;';
+        document.body.appendChild(iframe);
+        
+        // Load print URL in iframe
+        iframe.src = url;
+        
+        // Wait for iframe to load then print
+        iframe.onload = function() {
             setTimeout(function() {
-                printWindow.print();
+                try {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                } catch(e) {
+                    // Fallback: open in new tab
+                    window.open(url, '_blank');
+                }
+                
+                // Cleanup after print
+                setTimeout(function() {
+                    iframe.remove();
+                }, 1000);
             }, 500);
         };
     }

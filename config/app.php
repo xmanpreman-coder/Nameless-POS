@@ -169,6 +169,7 @@ return [
         Spatie\Permission\PermissionServiceProvider::class,
         Milon\Barcode\BarcodeServiceProvider::class,
         Barryvdh\Snappy\ServiceProvider::class,
+        // Modules\Brand\Providers\BrandServiceProvider::class, // Add Brand Service Provider (Temporarily removed)
         /*
          * Application Service Providers...
          */

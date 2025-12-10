@@ -38,7 +38,7 @@
 @push('page_scripts')
     {!! $dataTable->scripts() !!}
     <script>
-        // Simple and direct print approach
+        // Iframe-based print approach - works in WebView/Tauri without popup blocker
         let printInProgress = false;
         
         function printSaleNota(saleId) {
@@ -48,21 +48,53 @@
             
             printInProgress = true;
             
-            // Simple popup approach - user manually clicks print
             const url = '{{ url("/sales/pos/print") }}/' + saleId;
-            const printWindow = window.open(url, 'receipt_' + Date.now(), 
-                'width=400,height=600,scrollbars=no,resizable=no');
             
-            if (printWindow) {
-                printWindow.focus();
-            } else {
-                alert('Please allow popups for printing receipts');
+            // Remove existing print iframe if any
+            let existingFrame = document.getElementById('print-frame');
+            if (existingFrame) {
+                existingFrame.remove();
             }
             
-            // Reset flag after short delay
+            // Create hidden iframe for printing
+            const iframe = document.createElement('iframe');
+            iframe.id = 'print-frame';
+            iframe.name = 'print-frame';
+            iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:400px;height:600px;border:none;';
+            document.body.appendChild(iframe);
+            
+            // Load print URL in iframe
+            iframe.src = url;
+            
+            // Wait for iframe to load then print
+            iframe.onload = function() {
+                setTimeout(function() {
+                    try {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                    } catch(e) {
+                        // Fallback: open in new tab
+                        window.open(url, '_blank');
+                    }
+                    
+                    // Cleanup after print dialog closes
+                    setTimeout(function() {
+                        iframe.remove();
+                        printInProgress = false;
+                    }, 1000);
+                }, 500);
+            };
+            
+            // Error fallback
+            iframe.onerror = function() {
+                window.open(url, '_blank');
+                printInProgress = false;
+            };
+            
+            // Reset flag after timeout as backup
             setTimeout(function() {
                 printInProgress = false;
-            }, 2000);
+            }, 10000);
             
             return false;
         }

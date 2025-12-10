@@ -8,29 +8,98 @@ files:
   - from: .
     to: .
     filter:
+      # Exclude version control
       - "!**/.git"
-      - "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}"
-      - "!**/node_modules/*/.bin"
+      - "!**/.gitignore"
+      - "!**/.gitattributes"
+      
+      # Exclude development tools
+      - "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}"
+      - "!node_modules/*/.bin"
+      - "!**/node_modules/*/test/**"
+      - "!**/node_modules/*/tests/**"
+      - "!**/node_modules/*/.{editorconfig,eslintignore,eslintrc,prettierignore,prettierrc}"
       - "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}"
       - "!.editorconfig"
       - "!**/.editorconfig"
       - "!**/.eslintignore"
       - "!**/.eslintrc*"
       - "!**/._*"
+      
+      # Exclude documentation
       - "!**/*.md"
-      - "!.env"
+      - "!docs"
+      - "!docs/**"
+      
+      # Exclude build artifacts & logs
+      - "!build/**"
+      - "!dist/**"
+      - "!**/*.log"
+      - "!cache/**"
+      
+      # Exclude docker & deployment
       - "!docker*"
-      - "!.git*"
-      - "!*.php"
-      - "!composer*"
-      - "!artisan"
+      - "!Dockerfile*"
+      - "!.dockerignore"
+      - "!src-tauri/**"
+      - "!mobile_scanner_app/**"
+      - "!pos_bridge_server/**"
+      - "!pos_scanner/**"
+      
+      # Exclude test files
+      - "!tests/**"
+      - "!test-*.php"
+      - "!test_*.php"
+      - "!phpunit.xml"
+      - "!*.spec.js"
+      
+      # Exclude development config (but KEEP production env)
+      - "!.env"
+      - "!.env.contoh"
+      - "!.env.local"
+      - ".env.production"
+      - "!.vscode/**"
+      - "!.github/**"
+      - "!deploy/**"
+      
+      # Exclude misc files
+      - "!*.bat"
+      - "!*.ps1"
+      - "!*.sh"
+      - "!.htaccess"
+      - "!Procfile"
+      - "!server.php"
+      
+      # Keep important PHP files
+      - "app/**"
+      - "bootstrap/**"
+      - "config/**"
+      - "database/**"
+      - "Modules/**"
+      - "public/**"
+      - "resources/**"
+      - "routes/**"
+      - "storage/**"
+      - "vendor/**"
+      - "artisan"
+      - "composer.json"
+      - "composer.lock"
 
 win:
   target:
     - portable
+    - nsis
   certificateFile: null
   certificatePassword: null
-  sign: ./customSign.js
+  sign: null
+  asar: false
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Nameless POS
 
 portable:
   artifactName: Nameless-POS-${version}-portable.exe

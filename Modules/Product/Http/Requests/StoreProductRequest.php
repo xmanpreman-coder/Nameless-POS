@@ -29,7 +29,8 @@ class StoreProductRequest extends FormRequest
             'product_note' => ['nullable', 'string', 'max:1000'],
             'document' => ['nullable', 'array'],
             'document.*' => ['nullable', 'string'],
-            'category_id' => ['required', 'integer']
+            'category_id' => ['required', 'integer'],
+            'brand_id' => ['nullable', 'integer'] // Add brand_id validation
         ];
     }
 

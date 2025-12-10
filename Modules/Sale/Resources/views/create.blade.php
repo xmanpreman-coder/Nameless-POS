@@ -50,7 +50,7 @@
                                     <div class="from-group">
                                         <div class="form-group">
                                             <label for="date">Date <span class="text-danger">*</span></label>
-                                            <input type="date" class="form-control" name="date" required value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
+                                            <input type="date" class="form-control" name="date" id="date" required value="{{ \Carbon\Carbon::now()->format('Y-m-d') }}">
                                         </div>
                                     </div>
                                 </div>
@@ -118,7 +118,7 @@
 
 @push('page_scripts')
     <!-- QuaggaJS Library for Barcode Scanning -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script src="{{ asset('js/quagga.min.js') }}"></script>
     <!-- External Scanner Handler -->
     <script src="{{ asset('js/external-scanner.js') }}"></script>
     <script src="{{ asset('js/pos-scanner.js') }}"></script>

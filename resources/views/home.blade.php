@@ -8,18 +8,86 @@
     </ol>
 @endsection
 
+@section('third_party_stylesheets')
+<style>
+    /* Dashboard Stats Cards - Responsive Styles */
+    .stat-card {
+        overflow: hidden;
+    }
+    
+    .stat-card .card-body {
+        flex-wrap: nowrap;
+    }
+    
+    .stat-card .stat-content {
+        min-width: 0;
+        flex: 1;
+        overflow: hidden;
+    }
+    
+    .stat-card .text-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+    
+    /* Currency Format Toggle - Full vs Short */
+    .currency-short { display: none; }
+    .currency-full { display: inline; }
+    
+    /* When screen gets smaller, show short format */
+    @media (max-width: 1400px) {
+        .stat-card .text-value {
+            font-size: 1rem;
+        }
+    }
+    
+    @media (max-width: 1200px) {
+        .currency-short { display: inline; }
+        .currency-full { display: none; }
+        .stat-card .text-value {
+            font-size: 1rem;
+        }
+    }
+    
+    @media (max-width: 992px) {
+        .currency-short { display: none; }
+        .currency-full { display: inline; }
+        .stat-card .text-value {
+            font-size: 1.1rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .currency-short { display: inline; }
+        .currency-full { display: none; }
+        .stat-card .text-value {
+            font-size: 1rem;
+        }
+        
+        .stat-card .card-body > div:first-child {
+            padding: 12px !important;
+        }
+    }
+</style>
+@endsection
+
 @section('content')
     <div class="container-fluid">
         @can('show_total_stats')
         <div class="row">
             <div class="col-md-6 col-lg-3">
-                <div class="card border-0">
+                <div class="card border-0 stat-card">
                     <div class="card-body p-0 d-flex align-items-center shadow-sm">
                         <div class="bg-gradient-primary p-4 mfe-3 rounded-left">
                             <i class="bi bi-bar-chart font-2xl"></i>
                         </div>
-                        <div>
-                            <div class="text-value text-primary">{{ format_currency($revenue) }}</div>
+                        <div class="stat-content">
+                            <div class="text-value text-primary">
+                                <span class="currency-full">{{ format_currency($revenue) }}</span>
+                                <span class="currency-short">{{ format_currency_short($revenue) }}</span>
+                            </div>
                             <div class="text-muted text-uppercase font-weight-bold small">Revenue</div>
                         </div>
                     </div>
@@ -27,13 +95,16 @@
             </div>
 
             <div class="col-md-6 col-lg-3">
-                <div class="card border-0">
+                <div class="card border-0 stat-card">
                     <div class="card-body p-0 d-flex align-items-center shadow-sm">
                         <div class="bg-gradient-warning p-4 mfe-3 rounded-left">
                             <i class="bi bi-arrow-return-left font-2xl"></i>
                         </div>
-                        <div>
-                            <div class="text-value text-warning">{{ format_currency($sale_returns) }}</div>
+                        <div class="stat-content">
+                            <div class="text-value text-warning">
+                                <span class="currency-full">{{ format_currency($sale_returns) }}</span>
+                                <span class="currency-short">{{ format_currency_short($sale_returns) }}</span>
+                            </div>
                             <div class="text-muted text-uppercase font-weight-bold small">Sales Return</div>
                         </div>
                     </div>
@@ -41,13 +112,16 @@
             </div>
 
             <div class="col-md-6 col-lg-3">
-                <div class="card border-0">
+                <div class="card border-0 stat-card">
                     <div class="card-body p-0 d-flex align-items-center shadow-sm">
                         <div class="bg-gradient-success p-4 mfe-3 rounded-left">
                             <i class="bi bi-arrow-return-right font-2xl"></i>
                         </div>
-                        <div>
-                            <div class="text-value text-success">{{ format_currency($purchase_returns) }}</div>
+                        <div class="stat-content">
+                            <div class="text-value text-success">
+                                <span class="currency-full">{{ format_currency($purchase_returns) }}</span>
+                                <span class="currency-short">{{ format_currency_short($purchase_returns) }}</span>
+                            </div>
                             <div class="text-muted text-uppercase font-weight-bold small">Purchases Return</div>
                         </div>
                     </div>
@@ -55,13 +129,16 @@
             </div>
 
             <div class="col-md-6 col-lg-3">
-                <div class="card border-0">
+                <div class="card border-0 stat-card">
                     <div class="card-body p-0 d-flex align-items-center shadow-sm">
                         <div class="bg-gradient-info p-4 mfe-3 rounded-left">
                             <i class="bi bi-trophy font-2xl"></i>
                         </div>
-                        <div>
-                            <div class="text-value text-info">{{ format_currency($profit) }}</div>
+                        <div class="stat-content">
+                            <div class="text-value text-info">
+                                <span class="currency-full">{{ format_currency($profit) }}</span>
+                                <span class="currency-short">{{ format_currency_short($profit) }}</span>
+                            </div>
                             <div class="text-muted text-uppercase font-weight-bold small">Profit</div>
                         </div>
                     </div>

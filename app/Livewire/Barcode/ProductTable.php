@@ -5,6 +5,7 @@ namespace App\Livewire\Barcode;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Milon\Barcode\Facades\DNS1DFacade;
+use Illuminate\Support\Facades\Log;
 use Modules\Product\Entities\Product;
 use Modules\Product\Entities\Category;
 
@@ -123,7 +124,8 @@ class ProductTable extends Component
             ->paginate(20);
 
         // Remove only products from current page
-        $currentPageProductIds = $products->pluck('id')->toArray();
+        // Use items() and collect() so static analyzers recognize the operations
+        $currentPageProductIds = collect($products->items())->pluck('id')->toArray();
         $this->selectedProducts = array_diff($this->selectedProducts, $currentPageProductIds);
         
         foreach ($currentPageProductIds as $productId) {
@@ -176,18 +178,35 @@ class ProductTable extends Component
                 }
             }
 
-            if (!is_numeric($barcodeValue)) {
-                $errors[] = "Produk '{$product->product_name}': " . ($this->barcodeSource === 'gtin' ? 'GTIN' : 'SKU') . " harus berupa angka numerik!";
+            // Use selected barcode type or product's default
+            $barcodeSymbology = $this->barcodeType ?: ($product->product_barcode_symbology ?? 'C128');
+
+            // Validate numeric requirements:
+            // - GTIN must be numeric
+            // - Certain symbologies (EAN/UPC) require numeric input
+            $numericOnlySymbologies = ['EAN13', 'EAN8', 'UPCA', 'UPCE'];
+
+            if ($this->barcodeSource === 'gtin' && !is_numeric($barcodeValue)) {
+                $errors[] = "Produk '{$product->product_name}': GTIN harus berupa angka numerik!";
                 continue;
             }
 
-            // Use selected barcode type or product's default
-            $barcodeSymbology = $this->barcodeType ?: ($product->product_barcode_symbology ?? 'C128');
+            // If the user chose SKU but selected a numeric-only symbology, switch to Code 128
+            if ($this->barcodeSource === 'sku' && in_array($barcodeSymbology, $numericOnlySymbologies)) {
+                $barcodeSymbology = 'C128';
+                $this->barcodeType = 'C128';
+            }
+
+            if (in_array($barcodeSymbology, $numericOnlySymbologies) && !is_numeric($barcodeValue)) {
+                $errors[] = "Produk '{$product->product_name}': Jenis barcode '{$barcodeSymbology}' membutuhkan angka numerik (GTIN/UPC/EAN).";
+                continue;
+            }
             
             // Generate barcodes for this product
             for ($i = 1; $i <= $quantity; $i++) {
                 try {
-                    $barcode = DNS1DFacade::getBarCodeSVG($barcodeValue, $barcodeSymbology, 2, 60, 'black', false);
+                    // Use smaller width factor and moderate height so long codes don't stretch too wide
+                    $barcode = DNS1DFacade::getBarCodeSVG($barcodeValue, $barcodeSymbology, 1, 40, 'black', false);
                     $this->barcodes[] = $barcode;
                     $this->barcodeData[] = [
                         'barcode' => $barcode,
@@ -196,8 +215,17 @@ class ProductTable extends Component
                         'sku' => $product->product_sku ?? '',
                         'gtin' => $product->product_gtin ?? '',
                         'barcode_value' => $barcodeValue,
+                        'encoded_value' => $barcodeValue,
+                        'barcode_symbology' => $barcodeSymbology,
                         'barcode_source' => $this->barcodeSource,
                     ];
+                    // Log for debugging what value and symbology were encoded
+                    Log::debug('Barcode generated', [
+                        'product_id' => $product->id,
+                        'product_name' => $product->product_name,
+                        'encoded_value' => $barcodeValue,
+                        'symbology' => $barcodeSymbology,
+                    ]);
                     $successCount++;
                 } catch (\Exception $e) {
                     $errors[] = "Produk '{$product->product_name}': Gagal membuat barcode - " . $e->getMessage();
@@ -213,6 +241,13 @@ class ProductTable extends Component
             session()->flash('message', 'Tidak ada barcode yang berhasil dibuat. Pastikan produk memiliki SKU atau GTIN yang berupa angka numerik.');
         } elseif ($successCount > 0) {
             session()->flash('success', "Berhasil membuat {$successCount} barcode!");
+            // Notify browser with the generated barcode data so client JS can POST to server
+            if (method_exists($this, 'dispatch')) {
+                $this->dispatch('barcode-data-ready', ['data' => $this->barcodeData]);
+            } else {
+                // Fallback for older Livewire: use browser event
+                $this->dispatchBrowserEvent('barcode-data-ready', ['data' => $this->barcodeData]);
+            }
         }
     }
 

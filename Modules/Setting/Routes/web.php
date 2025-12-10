@@ -17,6 +17,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::patch('/settings/smtp', 'SettingController@updateSmtp')->name('settings.smtp.update');
     //General Settings
     Route::get('/settings', 'SettingController@index')->name('settings.index');
+    Route::get('/settings/general', function() {
+        return redirect()->route('settings.index');
+    });
     Route::patch('/settings', 'SettingController@update')->name('settings.update');
     
     // Database Backup Routes

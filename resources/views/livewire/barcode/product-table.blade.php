@@ -117,7 +117,7 @@
                         <tr>
                             <th style="width: 50px;" class="text-center">
                                 @php
-                                    $currentPageProductIds = $products->pluck('id')->toArray();
+                                    $currentPageProductIds = $products->getCollection()->pluck('id')->toArray();
                                     $selectedOnCurrentPage = array_intersect($selectedProducts, $currentPageProductIds);
                                     $allCurrentPageSelected = count($selectedOnCurrentPage) == count($currentPageProductIds) && count($currentPageProductIds) > 0;
                                 @endphp
@@ -198,7 +198,7 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="mt-3 d-flex justify-content-between align-items-center">
+                    <div class="mt-3 d-flex justify-content-between align-items-center">
                 <div>
                     <span class="text-muted">
                         <strong>{{ count($selectedProducts) }}</strong> produk dipilih
@@ -220,6 +220,7 @@
                             Generating...
                         </span>
                     </button>
+                            <!-- Print button removed per request -->
                     @if(!empty($barcodes))
                         <button 
                             type="button" 
@@ -236,6 +237,16 @@
 
     <!-- Generated Barcodes -->
     @if(!empty($barcodes))
+        <style>
+            /* Make barcode SVGs responsive inside the card */
+            .barcode-item-container svg,
+            .barcode-item svg {
+                max-width: 100%;
+                height: auto;
+                display: block;
+                margin: 0 auto;
+            }
+        </style>
         <div class="card mt-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h4 class="card-title mb-0">Barcode yang Dihasilkan ({{ count($barcodes) }})</h4>
@@ -263,521 +274,206 @@
                     >
                         <i class="bi bi-download"></i> Individual PNG
                     </button>
+                    <button
+                        onclick="downloadSVGsAsZip()"
+                        type="button"
+                        class="btn btn-outline-primary btn-sm ms-2"
+                        title="Download SVG files (recommended)"
+                    >
+                        <i class="bi bi-file-earmark-code"></i> Download SVG
+                    </button>
+                    @if (class_exists('Imagick'))
+                        <button
+                            onclick="downloadPngServerZip()"
+                            type="button"
+                            class="btn btn-outline-secondary btn-sm ms-2"
+                            title="Download PNG (server-side conversion)"
+                        >
+                            <i class="bi bi-cloud-download"></i> Download PNG (Server)
+                        </button>
+                    @endif
+                    <button
+                        onclick="downloadPngClientZip()"
+                        type="button"
+                        class="btn btn-outline-dark btn-sm ms-2"
+                        title="Download PNG (client-side conversion, simple)"
+                    >
+                        <i class="bi bi-phone"></i> Download PNG (Client)
+                    </button>
                 </div>
             </div>
             <div class="card-body">
                 <div class="row">
                     @foreach($barcodeData as $index => $data)
-                        <div class="col-lg-3 col-md-4 col-sm-6 mb-3 barcode-item-container" style="border: 1px solid #ddd;border-style: dashed;background-color: #ffffff;padding: 15px;">
-                            <p class="mt-2 mb-1" style="font-size: 14px;color: #000;font-weight: bold;">
-                                {{ $data['name'] }}
-                            </p>
-                            <div class="text-center">
-                                {!! $data['barcode'] !!}
+                            @php
+                                // Determine which label to show based on Livewire property or data
+                                $selectedSource = isset($barcodeSource) ? strtolower($barcodeSource) : (strtolower($data['barcode_source'] ?? '') ?: 'gtin');
+                                $label = $selectedSource === 'sku' ? 'sku' : 'gtin';
+                                if ($label === 'sku') {
+                                    $value = $data['sku'] ?? $data['barcode_value'] ?? '';
+                                } else {
+                                    $value = $data['gtin'] ?? $data['barcode_value'] ?? $data['sku'] ?? '';
+                                }
+                            @endphp
+
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-3 barcode-item-container" data-encoded="{{ $data['encoded_value'] ?? '' }}" style="border: 1px solid #ddd;border-style: dashed;background-color: #ffffff;padding: 15px;">
+                                <p class="mt-2 mb-1" style="font-size: 14px;color: #000;font-weight: bold;">
+                                    {{ $data['name'] }}
+                                </p>
+                                <div class="text-center">
+                                    {!! $data['barcode'] !!}
+                                </div>
+                                <p class="mb-1" style="font-size: 11px;color: #000;">
+                                    {{ strtoupper($label) }}: {{ $value }}
+                                </p>
+                                <p class="mb-1 text-muted" style="font-size:11px;">Encoded value: <strong>{{ $data['encoded_value'] ?? $data['barcode_value'] ?? '' }}</strong></p>
+                                <p style="font-size: 13px;color: #000;font-weight: bold;">
+                                    Price: {{ format_currency($data['price']) }}
+                                </p>
                             </div>
-                            <p class="mb-1" style="font-size: 11px;color: #000;">
-                                {{ strtoupper($data['barcode_source']) }}: {{ $data['barcode_value'] }}
-                            </p>
-                            @if($data['gtin'])
-                                <p class="mb-1" style="font-size: 11px;color: #666;">
-                                    GTIN: {{ $data['gtin'] }}
-                                </p>
-                            @endif
-                            @if($data['sku'])
-                                <p class="mb-1" style="font-size: 11px;color: #666;">
-                                    SKU: {{ $data['sku'] }}
-                                </p>
-                            @endif
-                            <p style="font-size: 13px;color: #000;font-weight: bold;">
-                                Price: {{ format_currency($data['price']) }}
-                            </p>
-                        </div>
-                    @endforeach
+                        @endforeach
                 </div>
             </div>
         </div>
     @endif
 
     @push('page_scripts')
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" onload="console.log('html2canvas loaded successfully from CDN')" onerror="console.error('Failed to load html2canvas from CDN')"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" onload="console.log('JSZip library loaded successfully')" onerror="console.error('Failed to load JSZip library')"></script>
-    
+
     <script>
-        // Debug: Check if html2canvas loads after DOM ready
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                console.log('=== HTML2CANVAS DEBUG ===');
-                console.log('typeof html2canvas:', typeof html2canvas);
-                console.log('window.html2canvas:', window.html2canvas);
-                
-                if (typeof html2canvas === 'undefined') {
-                    console.error('CRITICAL: html2canvas is still undefined after page load');
-                    console.log('Available window properties:', Object.keys(window).filter(key => key.toLowerCase().includes('html') || key.toLowerCase().includes('canvas')));
-                } else {
-                    console.log('SUCCESS: html2canvas is available and ready');
-                    console.log('html2canvas function:', html2canvas);
-                }
-            }, 2000);
-        });
-    </script>
-    
-    <script>
-        // Support both Livewire v2 and v3
+        // Minimal, stable download scripts: keep only SVG zip and simple client PNG zip.
+        window._barcodeDataForServerDownload = @json($barcodeData ?? []);
+
+        // Livewire listener only for barcode-data-ready (no automatic download triggers)
         if (typeof Livewire !== 'undefined') {
             if (typeof Livewire.on === 'function') {
-                // Livewire v3
                 document.addEventListener('livewire:init', () => {
-                    Livewire.on('download-barcode-images', () => {
-                        setTimeout(() => {
-                            downloadBarcodesFromDOM();
-                        }, 300);
+                    Livewire.on('barcode-data-ready', (payload) => {
+                        try { window._barcodeDataForServerDownload = payload.data || []; } catch (e) { console.error(e); }
                     });
                 });
-            } else {
-                // Livewire v2
-                window.livewire.on('download-barcode-images', () => {
-                    setTimeout(() => {
-                        downloadBarcodesFromDOM();
-                    }, 300);
+            } else if (window.livewire && typeof window.livewire.on === 'function') {
+                window.livewire.on('barcode-data-ready', (payload) => {
+                    try { window._barcodeDataForServerDownload = payload.data || []; } catch (e) { console.error(e); }
                 });
             }
         }
 
-        function downloadBarcodesFromDOM() {
-            console.log('=== BARCODE DOWNLOAD DEBUG START ===');
-            console.log('Download barcode images triggered...');
-            
-            // Debug: Check current page and barcode containers
-            console.log('Current page URL:', window.location.href);
-            console.log('Document title:', document.title);
-            
-            // Get all barcode containers from the page
-            const barcodeContainers = document.querySelectorAll('.barcode-item-container');
-            console.log('🔍 Found barcode containers:', barcodeContainers.length);
-            
-            // If none found, try alternative selectors
-            if (barcodeContainers.length === 0) {
-                console.log('⚠️ Primary selector failed, trying alternatives...');
-                
-                const alternatives = [
-                    { selector: '.barcode-container', name: 'barcode-container' },
-                    { selector: '.barcode-item', name: 'barcode-item' },
-                    { selector: '[class*="barcode"]', name: 'any barcode class' },
-                    { selector: '.print-barcode-item', name: 'print-barcode-item' },
-                    { selector: '.row > .col', name: 'row columns' },
-                    { selector: 'svg', name: 'SVG elements' },
-                    { selector: '.card', name: 'card elements' }
-                ];
-                
-                for (let alt of alternatives) {
-                    const found = document.querySelectorAll(alt.selector);
-                    if (found.length > 0) {
-                        console.log(`✅ Found ${found.length} elements with selector "${alt.selector}" (${alt.name})`);
-                        console.log('Sample element:', found[0]);
-                        
-                        // If we find SVG or cards, those might be our barcode containers
-                        if (alt.selector === 'svg' || alt.selector === '.card' || alt.selector === '.row > .col') {
-                            console.log(`🎯 Using ${alt.selector} as barcode containers`);
-                            return Array.from(found); // Return alternative containers
-                        }
-                    }
-                }
-            }
-            
-            // Debug: List all containers that might be barcodes
-            const allContainers = document.querySelectorAll('[class*="barcode"], [id*="barcode"]');
-            console.log('All potential barcode elements:', allContainers.length);
-            allContainers.forEach((el, i) => {
-                console.log(`Element ${i}:`, el.className, el.id);
-            });
-            
-            // Debug: Check specific selectors
-            const altSelectors = [
-                '.barcode-container',
-                '.barcode-item',
-                '[data-barcode]',
-                '.product-barcode',
-                '#barcode-display'
-            ];
-            
-            altSelectors.forEach(selector => {
-                const found = document.querySelectorAll(selector);
-                if (found.length > 0) {
-                    console.log(`Alternative selector "${selector}" found:`, found.length, 'elements');
-                }
-            });
-            
-            if (barcodeContainers.length === 0) {
-                console.error('NO BARCODE CONTAINERS FOUND!');
-                console.log('Available classes on page:', Array.from(document.querySelectorAll('[class]')).map(el => el.className).filter(c => c).slice(0, 20));
-                alert('Tidak ada barcode untuk didownload! Pastikan Anda sudah generate barcode terlebih dahulu.');
-                return;
-            }
-
-            // Check if html2canvas is loaded
-            console.log('Checking html2canvas availability...');
-            console.log('typeof html2canvas:', typeof html2canvas);
-            console.log('window.html2canvas:', window.html2canvas);
-            
-            if (typeof html2canvas === "undefined") {
-                console.error("CRITICAL ERROR: html2canvas library not loaded");
-                console.log('Trying to load html2canvas manually...');
-                
-                // Try to load manually
-                const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-                script.onload = function() {
-                    console.log('html2canvas loaded manually, retrying download...');
-                    setTimeout(downloadBarcodesFromDOM, 1000);
-                };
-                script.onerror = function() {
-                    console.error('Failed to load html2canvas manually');
-                    alert("Error: html2canvas library tidak dapat dimuat. Coba gunakan browser yang berbeda atau periksa koneksi internet.");
-                };
-                document.head.appendChild(script);
-                return;
-            }
-
-            console.log("SUCCESS: html2canvas library available, starting download process...");
-
-            let downloadCount = 0;
-            const totalBarcodes = barcodeContainers.length;
-            let downloadPromises = [];
-
-            // Function to download single barcode from DOM element
-            function downloadSingleBarcode(container, index) {
-                return new Promise((resolve) => {
-                    console.log(`Processing barcode ${index + 1}/${totalBarcodes}`);
-                    
-                    try {
-                        // Clone the container to avoid modifying the original
-                        const clonedContainer = container.cloneNode(true);
-                        clonedContainer.style.position = "absolute";
-                        clonedContainer.style.left = "-9999px";
-                        clonedContainer.style.top = "0";
-                        clonedContainer.style.width = "300px"; // Fixed width for consistency
-                        clonedContainer.style.minHeight = "150px";
-                        clonedContainer.style.backgroundColor = "#ffffff";
-                        clonedContainer.style.padding = "15px";
-                        clonedContainer.style.border = "1px solid #ddd";
-                        clonedContainer.style.fontFamily = "Arial, sans-serif";
-                        document.body.appendChild(clonedContainer);
-                        
-                        // Wait for DOM to settle
-                        setTimeout(() => {
-                            html2canvas(clonedContainer, {
-                                backgroundColor: "#ffffff",
-                                width: 300,
-                                height: 200,
-                                scale: 2,
-                                logging: false,
-                                useCORS: true,
-                                allowTaint: true,
-                                imageTimeout: 15000,
-                                onclone: function(clonedDoc) {
-                                    // Ensure all styles are applied in cloned document
-                                    const clonedElement = clonedDoc.body.querySelector('[style*="position: absolute"]');
-                                    if (clonedElement) {
-                                        clonedElement.style.position = "static";
-                                        clonedElement.style.left = "auto";
-                                    }
-                                }
-                            }).then(canvas => {
-                                console.log(`Canvas created for barcode ${index + 1}`);
-                                
-                                // Get product name from container (more robust selector)
-                                let name = 'barcode';
-                                const nameElements = container.querySelectorAll('p');
-                                for (let nameEl of nameElements) {
-                                    if (nameEl.style.fontWeight === 'bold' || nameEl.textContent.trim().length > 3) {
-                                        name = nameEl.textContent.trim();
-                                        break;
-                                    }
-                                }
-                                
-                                // Get barcode value (more robust)
-                                let barcodeValue = index + 1;
-                                const barcodeInfos = container.querySelectorAll('p');
-                                for (let info of barcodeInfos) {
-                                    if (info.textContent.includes(':') && (info.textContent.includes('SKU') || info.textContent.includes('GTIN'))) {
-                                        const parts = info.textContent.split(':');
-                                        if (parts.length > 1) {
-                                            barcodeValue = parts[1].trim();
-                                            break;
-                                        }
-                                    }
-                                }
-                                
-                                // Create download link
-                                const link = document.createElement("a");
-                                const cleanName = name.replace(/[^a-z0-9\s]/gi, "").replace(/\s+/g, "_");
-                                const fileName = `${cleanName}_${barcodeValue}.png`;
-                                
-                                link.download = fileName;
-                                link.href = canvas.toDataURL("image/png", 0.95);
-                                
-                                // Trigger download
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                                
-                                console.log(`Downloaded: ${fileName}`);
-                                
-                                // Remove cloned container
-                                if (document.body.contains(clonedContainer)) {
-                                    document.body.removeChild(clonedContainer);
-                                }
-                                
-                                downloadCount++;
-                                
-                                if (downloadCount === totalBarcodes) {
-                                    console.log("All barcodes downloaded successfully!");
-                                    alert(`Berhasil mendownload ${totalBarcodes} barcode!`);
-                                }
-                                
-                                resolve();
-                                
-                            }).catch(err => {
-                                console.error(`Error converting barcode ${index + 1} to image:`, err);
-                                
-                                // Remove cloned container
-                                if (document.body.contains(clonedContainer)) {
-                                    document.body.removeChild(clonedContainer);
-                                }
-                                
-                                downloadCount++;
-                                resolve();
-                            });
-                        }, 500 + (index * 300)); // Increased delay for stability
-                        
-                    } catch (error) {
-                        console.error(`Error processing barcode ${index + 1}:`, error);
-                        downloadCount++;
-                        resolve();
-                    }
-                });
-            }
-            
-            // Download all barcodes sequentially with error handling
-            async function downloadAllBarcodes() {
-                try {
-                    console.log(`Starting download of ${totalBarcodes} barcodes...`);
-                    
-                    for (let i = 0; i < barcodeContainers.length; i++) {
-                        await downloadSingleBarcode(barcodeContainers[i], i);
-                        
-                        // Small delay between downloads to prevent browser blocking
-                        if (i < barcodeContainers.length - 1) {
-                            await new Promise(resolve => setTimeout(resolve, 200));
-                        }
-                    }
-                    
-                    console.log("Download process completed");
-                    
-                } catch (error) {
-                    console.error("Error in download process:", error);
-                    alert("Terjadi kesalahan saat mendownload barcode. Silakan coba lagi.");
-                }
-            }
-            
-            downloadAllBarcodes();
+        // Helper to escape XML text in SVG
+        function escapeXml(unsafe) {
+            return (unsafe || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&apos;');
         }
 
-        // New ZIP download function
-        async function downloadBarcodesAsZip() {
-            console.log('=== ZIP DOWNLOAD START ===');
-            
-            // Check if JSZip library is loaded
-            if (typeof JSZip === "undefined") {
-                console.error("JSZip library not loaded");
-                alert("Error: JSZip library tidak dimuat. Silakan refresh halaman dan coba lagi.");
-                return;
-            }
+        // Download raw SVGs wrapped with labels
+        async function downloadSVGsAsZip() {
+            if (typeof JSZip === 'undefined') { alert('JSZip belum dimuat.'); return; }
+            const containers = document.querySelectorAll('.barcode-item-container');
+            if (!containers.length) { alert('Tidak ada barcode untuk didownload'); return; }
 
-            // Get all barcode containers
-            const barcodeContainers = document.querySelectorAll('.barcode-item-container');
-            console.log('🔍 Found barcode containers for ZIP:', barcodeContainers.length);
-            
-            if (barcodeContainers.length === 0) {
-                alert('Tidak ada barcode untuk didownload!');
-                return;
-            }
-
-            console.log("✅ JSZip library available, starting ZIP generation...");
-
-            // Create new ZIP instance
             const zip = new JSZip();
-            const zipFolder = zip.folder("barcodes");
-            
-            let processedCount = 0;
-            const totalBarcodes = barcodeContainers.length;
+            const folder = zip.folder('barcodes_svg');
 
-            // Show progress indicator
-            const progressDiv = document.createElement('div');
-            progressDiv.innerHTML = `
-                <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                           background: white; padding: 20px; border: 2px solid #007bff; border-radius: 8px; 
-                           box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 9999; text-align: center;">
-                    <div style="margin-bottom: 15px;">
-                        <i class="bi bi-file-earmark-zip" style="font-size: 2rem; color: #007bff;"></i>
-                    </div>
-                    <h5>Creating ZIP file...</h5>
-                    <div id="zip-progress">Processing barcode 1 of ${totalBarcodes}</div>
-                    <div style="margin-top: 10px;">
-                        <div style="width: 300px; height: 10px; background: #f0f0f0; border-radius: 5px; overflow: hidden;">
-                            <div id="zip-progress-bar" style="width: 0%; height: 100%; background: #007bff; transition: width 0.3s;"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(progressDiv);
+            containers.forEach((container, i) => {
+                const svgElem = container.querySelector('svg');
+                if (!svgElem) return;
+                const svgString = new XMLSerializer().serializeToString(svgElem);
+                const encodedSvg = encodeURIComponent(svgString);
 
-            // Function to convert single barcode to canvas and add to ZIP
-            async function processSingleBarcodeToZip(container, index) {
-                return new Promise((resolve) => {
-                    try {
-                        console.log(`📷 Processing barcode ${index + 1}/${totalBarcodes} for ZIP`);
-                        
-                        // Update progress
-                        const progressText = document.getElementById('zip-progress');
-                        const progressBar = document.getElementById('zip-progress-bar');
-                        if (progressText) {
-                            progressText.textContent = `Processing barcode ${index + 1} of ${totalBarcodes}`;
-                        }
-                        if (progressBar) {
-                            progressBar.style.width = `${((index) / totalBarcodes) * 100}%`;
-                        }
-
-                        // Clone container for processing
-                        const clonedContainer = container.cloneNode(true);
-                        clonedContainer.style.position = "absolute";
-                        clonedContainer.style.left = "-9999px";
-                        clonedContainer.style.top = "0";
-                        clonedContainer.style.width = "300px";
-                        clonedContainer.style.minHeight = "150px";
-                        clonedContainer.style.backgroundColor = "#ffffff";
-                        clonedContainer.style.padding = "15px";
-                        clonedContainer.style.border = "1px solid #ddd";
-                        clonedContainer.style.fontFamily = "Arial, sans-serif";
-                        document.body.appendChild(clonedContainer);
-                        
-                        setTimeout(() => {
-                            html2canvas(clonedContainer, {
-                                backgroundColor: "#ffffff",
-                                width: 300,
-                                height: 200,
-                                scale: 2,
-                                logging: false,
-                                useCORS: true,
-                                allowTaint: true
-                            }).then(canvas => {
-                                console.log(`✅ Canvas created for barcode ${index + 1}`);
-                                
-                                // Get filename
-                                let name = 'barcode';
-                                let barcodeValue = index + 1;
-                                
-                                // Extract product name and barcode value
-                                const nameElements = container.querySelectorAll('p');
-                                for (let nameEl of nameElements) {
-                                    if (nameEl.style.fontWeight === 'bold' || nameEl.textContent.trim().length > 3) {
-                                        name = nameEl.textContent.trim();
-                                        break;
-                                    }
-                                }
-                                
-                                const barcodeInfos = container.querySelectorAll('p');
-                                for (let info of barcodeInfos) {
-                                    if (info.textContent.includes(':') && (info.textContent.includes('SKU') || info.textContent.includes('GTIN'))) {
-                                        const parts = info.textContent.split(':');
-                                        if (parts.length > 1) {
-                                            barcodeValue = parts[1].trim();
-                                            break;
-                                        }
-                                    }
-                                }
-                                
-                                // Create filename
-                                const cleanName = name.replace(/[^a-z0-9\s]/gi, "").replace(/\s+/g, "_");
-                                const fileName = `${cleanName}_${barcodeValue}.png`;
-                                
-                                // Convert canvas to base64 and add to ZIP
-                                const base64Data = canvas.toDataURL('image/png').split(',')[1];
-                                zipFolder.file(fileName, base64Data, { base64: true });
-                                
-                                console.log(`📁 Added to ZIP: ${fileName}`);
-                                
-                                // Clean up
-                                document.body.removeChild(clonedContainer);
-                                
-                                processedCount++;
-                                resolve();
-                                
-                            }).catch(err => {
-                                console.error(`❌ Error processing barcode ${index + 1}:`, err);
-                                if (document.body.contains(clonedContainer)) {
-                                    document.body.removeChild(clonedContainer);
-                                }
-                                processedCount++;
-                                resolve();
-                            });
-                        }, 300 + (index * 100));
-                        
-                    } catch (error) {
-                        console.error(`❌ Error processing barcode ${index + 1}:`, error);
-                        processedCount++;
-                        resolve();
-                    }
+                // gather meta
+                const productName = container.querySelector('p')?.textContent.trim() || 'barcode';
+                let sku = '';
+                let price = '';
+                container.querySelectorAll('p').forEach(p => {
+                    const t = p.textContent.trim();
+                    if (/^sku[:\s]/i.test(t) || t.toLowerCase().includes('sku')) sku = t.split(':').slice(1).join(':').trim();
+                    if (/price|rp/i.test(t)) price = t;
                 });
+
+                // Embed the original SVG as an <image> so we control the output size
+                const imgWidth = 560; const imgHeight = 120;
+                const imageTag = `<image href="data:image/svg+xml;utf8,${encodedSvg}" width="${imgWidth}" height="${imgHeight}" preserveAspectRatio="xMidYMid meet" />`;
+
+                // Note: XML declaration removed to avoid Blade/PHP parsing issues.
+                const wrapped = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="220" viewBox="0 0 600 220">`+
+                                `<style>.title{font-family:Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;fill:#000}.info{font-family:Arial,Helvetica,sans-serif;font-size:12px;fill:#000}</style>`+
+                                `<text x="20" y="24" class="title">${escapeXml(productName)}</text>`+
+                                `<g transform="translate(20,36)">`+imageTag+`</g>`+
+                                `<text x="20" y="186" class="info">SKU/GTIN: ${escapeXml(sku)}</text>`+
+                                `<text x="20" y="204" class="info">${escapeXml(price)}</text>`+
+                                `</svg>`;
+
+                const clean = (productName||'barcode').replace(/[^a-z0-9\s]/gi,'').replace(/\s+/g,'_');
+                const name = `${clean}_${(sku||i+1) || i+1}.svg`;
+                folder.file(name, wrapped);
+            });
+
+            const blob = await zip.generateAsync({type:'blob'});
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `barcodes_svg_${Date.now()}.zip`;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        }
+
+        // Simple client-side SVG -> PNG zip (keeps labels via wrapper canvas)
+        async function downloadPngClientZip() {
+            if (typeof JSZip === 'undefined') { alert('JSZip belum dimuat.'); return; }
+            const containers = document.querySelectorAll('.barcode-item-container');
+            if (!containers.length) { alert('Tidak ada barcode untuk didownload'); return; }
+
+            const zip = new JSZip();
+            const folder = zip.folder('barcodes_png');
+
+            for (let i = 0; i < containers.length; i++) {
+                const c = containers[i];
+                const svg = c.querySelector('svg'); if (!svg) continue;
+                    const svgString = new XMLSerializer().serializeToString(svg);
+                    const blob = new Blob([svgString], {type:'image/svg+xml'});
+                    const url = URL.createObjectURL(blob);
+                    // create image
+                    /* eslint-disable no-await-in-loop */
+                    const img = await new Promise((res, rej) => { const im=new Image(); im.onload=()=>res(im); im.onerror=rej; im.src=url; });
+
+                    // build canvas with title and footer
+                    const title = c.querySelector('p')?.textContent.trim() || 'barcode';
+                    let sku=''; let price=''; c.querySelectorAll('p').forEach(p=>{const t=p.textContent.trim(); if(/sku/i.test(t)) sku=t.split(':').slice(1).join(':').trim(); if(/price|rp/i.test(t)) price=t});
+                    const padding = 20;
+                    // Use fixed inner dimensions to avoid very large renders when original SVG lacks explicit dimensions
+                    const innerW = 560; const innerH = 120;
+                    const W = innerW + padding*2; const H = 28 + innerH + 40;
+                    const scale=2; const canvas=document.createElement('canvas'); canvas.width=W*scale; canvas.height=H*scale; const ctx=canvas.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+                    ctx.fillStyle='#000'; ctx.font=`${14*scale}px Arial`; ctx.fillText(title, padding*scale, 18*scale);
+                    ctx.drawImage(img, padding*scale, 28*scale, innerW*scale, innerH*scale);
+                    ctx.font=`${12*scale}px Arial`; ctx.fillText(sku, padding*scale, (28+innerH+18)*scale); if(price) ctx.fillText(price, padding*scale, (28+innerH+34)*scale);
+                    const dataUrl = canvas.toDataURL('image/png'); const base64 = dataUrl.split(',')[1];
+                    const clean = title.replace(/[^a-z0-9\s]/gi,'').replace(/\s+/g,'_'); const name = `${clean}_${(sku||i+1)}.png`;
+                    folder.file(name, base64, {base64:true}); URL.revokeObjectURL(url);
             }
-            
-            // Process all barcodes sequentially
-            for (let i = 0; i < barcodeContainers.length; i++) {
-                await processSingleBarcodeToZip(barcodeContainers[i], i);
-            }
 
-            // Update progress to 100%
-            const progressBar = document.getElementById('zip-progress-bar');
-            const progressText = document.getElementById('zip-progress');
-            if (progressBar) progressBar.style.width = '100%';
-            if (progressText) progressText.textContent = 'Generating ZIP file...';
+            const zipBlob = await zip.generateAsync({type:'blob'});
+            const link = document.createElement('a'); link.href = URL.createObjectURL(zipBlob); link.download = `barcodes_png_${Date.now()}.zip`; document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(link.href);
+        }
 
-            console.log('📦 All barcodes processed, generating ZIP file...');
-
+        // Backwards-compatible global aliases for older inline onclick handlers
+        function _assignBarcodeAliases() {
             try {
-                // Generate ZIP file
-                const zipBlob = await zip.generateAsync({ 
-                    type: "blob",
-                    compression: "DEFLATE",
-                    compressionOptions: { level: 6 }
-                });
-                
-                console.log('✅ ZIP file generated successfully');
-                
-                // Create download link
-                const zipFileName = `barcodes_${new Date().getTime()}.zip`;
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(zipBlob);
-                link.download = zipFileName;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                // Clean up
-                URL.revokeObjectURL(link.href);
-                
-                console.log(`🎉 ZIP download completed: ${zipFileName}`);
-                alert(`Berhasil mendownload ZIP dengan ${processedCount} barcode!`);
-                
-            } catch (error) {
-                console.error('❌ Error generating ZIP:', error);
-                alert('Terjadi kesalahan saat membuat ZIP file. Silakan coba lagi.');
-            } finally {
-                // Remove progress indicator
-                if (document.body.contains(progressDiv)) {
-                    document.body.removeChild(progressDiv);
-                }
-            }
+                window.downloadBarcodesAsZip = function() { return downloadSVGsAsZip(); };
+                window.downloadBarcodesFromDOM = function() { return downloadPngClientZip(); };
+            } catch (e) { console.debug('assign aliases failed', e); }
+        }
+        _assignBarcodeAliases();
+
+        // Re-assign after Livewire updates (Livewire may re-render DOM)
+        if (typeof Livewire !== 'undefined') {
+            try {
+                document.addEventListener('livewire:update', _assignBarcodeAliases);
+                document.addEventListener('livewire:load', _assignBarcodeAliases);
+            } catch (e) { /* ignore */ }
         }
     </script>
     @endpush

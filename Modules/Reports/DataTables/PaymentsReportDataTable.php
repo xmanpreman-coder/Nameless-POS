@@ -57,11 +57,11 @@ class PaymentsReportDataTable extends DataTable
             ->buttons(
                 Button::make('excel')
                     ->text('<i class="bi bi-file-earmark-excel"></i> Excel')
-                    ->extend('excel')
-                    ->className('btn btn-success')
-                    ->exportOptions([
-                        'columns' => ':visible'
-                    ]),
+                    ->action('function() { 
+                        const url = "'.route('payments-report.export-excel').'" + window.location.search;
+                        window.location.href = url;
+                    }')
+                    ->className('btn btn-success'),
                 Button::make('print')
                     ->text('<i class="bi bi-printer-fill"></i> Print')
                     ->action('function() {

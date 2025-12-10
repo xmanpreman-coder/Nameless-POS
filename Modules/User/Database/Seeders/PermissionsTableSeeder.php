@@ -34,6 +34,11 @@ class PermissionsTableSeeder extends Seeder
             'delete_products',
             //Product Categories
             'access_product_categories',
+            //Brands
+            'access_brands',
+            'create_brands',
+            'edit_brands',
+            'delete_brands',
             //Barcode Printing
             'print_barcodes',
             //Adjustments
@@ -121,12 +126,12 @@ class PermissionsTableSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create([
+            Permission::firstOrCreate([
                 'name' => $permission
             ]);
         }
 
-        $role = Role::create([
+        $role = Role::firstOrCreate([
             'name' => 'Admin'
         ]);
 

@@ -64,6 +64,17 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
+                                        <label for="brand_id">Brand</label>
+                                        <select class="form-control" name="brand_id" id="brand_id">
+                                            <option value="" selected>Select Brand</option>
+                                            @foreach($brands as $brand)
+                                                <option value="{{ $brand->id }}">{{ $brand->brand_name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
                                         <label for="product_barcode_symbology">Barcode Symbology <span class="text-danger">*</span></label>
                                         <select class="form-control" name="product_barcode_symbology" id="product_barcode_symbology" required>
                                             <option value="" selected disabled>Select Symbology</option>
@@ -81,13 +92,13 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="product_cost">Cost <span class="text-danger">*</span></label>
-                                        <input id="product_cost" type="text" class="form-control" name="product_cost" required value="{{ old('product_cost') }}">
+                                        <input id="product_cost" type="number" class="form-control" name="product_cost" required value="{{ preg_replace('/[^0-9.]/', '', old('product_cost', '0')) }}" step="0.01" min="0">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="product_price">Price <span class="text-danger">*</span></label>
-                                        <input id="product_price" type="text" class="form-control" name="product_price" required value="{{ old('product_price') }}">
+                                        <input id="product_price" type="number" class="form-control" name="product_price" required value="{{ preg_replace('/[^0-9.]/', '', old('product_price', '0')) }}" step="0.01" min="0">
                                     </div>
                                 </div>
                             </div>
@@ -162,32 +173,16 @@
 
     <!-- Create Category Modal -->
     @include('product::includes.category-modal')
+
 @endsection
 
-@section('third_party_scripts')
-@endsection
+
+
 
 @push('page_scripts')
     <script>
-        $(document).ready(function () {
-            $('#product_cost').maskMoney({
-                prefix:'{{ settings()->currency->symbol }}',
-                thousands:'{{ settings()->currency->thousand_separator }}',
-                decimal:'{{ settings()->currency->decimal_separator }}',
-            });
-            $('#product_price').maskMoney({
-                prefix:'{{ settings()->currency->symbol }}',
-                thousands:'{{ settings()->currency->thousand_separator }}',
-                decimal:'{{ settings()->currency->decimal_separator }}',
-            });
-
-            $('#product-form').submit(function () {
-                var product_cost = $('#product_cost').maskMoney('unmasked')[0];
-                var product_price = $('#product_price').maskMoney('unmasked')[0];
-                $('#product_cost').val(product_cost);
-                $('#product_price').val(product_price);
-            });
-        });
+        // Number input fields handle their own validation
+        // No maskMoney needed for type="number" inputs
     </script>
 @endpush
 

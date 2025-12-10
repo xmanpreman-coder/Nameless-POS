@@ -3,6 +3,7 @@
 namespace Modules\Reports\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Gate;
 use Modules\Reports\DataTables\SalesReportDataTable;
@@ -12,6 +13,7 @@ use Modules\Reports\DataTables\SalesReturnReportDataTable;
 use Modules\Reports\DataTables\PurchasesReturnReportDataTable;
 use Modules\People\Entities\Customer;
 use Modules\People\Entities\Supplier;
+use Barryvdh\Snappy\Facades\SnappyPdf as PDF;
 
 class ReportsController extends Controller
 {
@@ -50,7 +52,7 @@ class ReportsController extends Controller
                 })
                 ->orderBy('date', 'desc')->get();
             
-            $pdf = \PDF::loadView('reports::sales.pdf', [
+            $pdf = PDF::loadView('reports::sales.pdf', [
                 'sales' => $sales,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
@@ -101,8 +103,11 @@ class ReportsController extends Controller
     }
     
     public function exportSalesReportCSV(Request $request) {
-        $sales = \Modules\Sale\Entities\Sale::whereDate('date', '>=', $request->start_date)
-            ->whereDate('date', '<=', $request->end_date)
+        $start_date = $request->get('start_date', session('start_date', today()->subDays(30)->format('Y-m-d')));
+        $end_date = $request->get('end_date', session('end_date', today()->format('Y-m-d')));
+
+        $sales = \Modules\Sale\Entities\Sale::whereDate('date', '>=', $start_date)
+            ->whereDate('date', '<=', $end_date)
             ->when($request->customer_id, function ($query) use ($request) {
                 return $query->where('customer_id', $request->customer_id);
             })
@@ -170,7 +175,7 @@ class ReportsController extends Controller
                 })
                 ->orderBy('date', 'desc')->get();
             
-            $pdf = \PDF::loadView('reports::purchases.pdf', [
+            $pdf = PDF::loadView('reports::purchases.pdf', [
                 'purchases' => $purchases,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
@@ -218,8 +223,11 @@ class ReportsController extends Controller
     }
     
     public function exportPurchasesReportCSV(Request $request) {
-        $purchases = \Modules\Purchase\Entities\Purchase::whereDate('date', '>=', $request->start_date)
-            ->whereDate('date', '<=', $request->end_date)
+        $start_date = $request->get('start_date', session('start_date', today()->subDays(30)->format('Y-m-d')));
+        $end_date = $request->get('end_date', session('end_date', today()->format('Y-m-d')));
+
+        $purchases = \Modules\Purchase\Entities\Purchase::whereDate('date', '>=', $start_date)
+            ->whereDate('date', '<=', $end_date)
             ->when($request->supplier_id, function ($query) use ($request) {
                 return $query->where('supplier_id', $request->supplier_id);
             })
@@ -284,7 +292,7 @@ class ReportsController extends Controller
                 })
                 ->orderBy('date', 'desc')->get();
             
-            $pdf = \PDF::loadView('reports::sales-return.pdf', [
+            $pdf = PDF::loadView('reports::sales-return.pdf', [
                 'sales_returns' => $sales_returns,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
@@ -327,8 +335,11 @@ class ReportsController extends Controller
     }
     
     public function exportSalesReturnReportCSV(Request $request) {
-        $sales_returns = \Modules\SalesReturn\Entities\SaleReturn::whereDate('date', '>=', $request->start_date)
-            ->whereDate('date', '<=', $request->end_date)
+        $start_date = $request->get('start_date', session('start_date', today()->subDays(30)->format('Y-m-d')));
+        $end_date = $request->get('end_date', session('end_date', today()->format('Y-m-d')));
+
+        $sales_returns = \Modules\SalesReturn\Entities\SaleReturn::whereDate('date', '>=', $start_date)
+            ->whereDate('date', '<=', $end_date)
             ->when($request->customer_id, function ($query) use ($request) {
                 return $query->where('customer_id', $request->customer_id);
             })
@@ -370,7 +381,7 @@ class ReportsController extends Controller
         
         return response()->stream($callback, 200, $headers);
     }
-
+    
     public function purchasesReturnReport(PurchasesReturnReportDataTable $dataTable) {
         abort_if(Gate::denies('access_reports'), 403);
         
@@ -393,7 +404,7 @@ class ReportsController extends Controller
                 })
                 ->orderBy('date', 'desc')->get();
             
-            $pdf = \PDF::loadView('reports::purchases-return.pdf', [
+            $pdf = PDF::loadView('reports::purchases-return.pdf', [
                 'purchase_returns' => $purchase_returns,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
@@ -436,8 +447,11 @@ class ReportsController extends Controller
     }
     
     public function exportPurchasesReturnReportCSV(Request $request) {
-        $purchase_returns = \Modules\PurchasesReturn\Entities\PurchaseReturn::whereDate('date', '>=', $request->start_date)
-            ->whereDate('date', '<=', $request->end_date)
+        $start_date = $request->get('start_date', session('start_date', today()->subDays(30)->format('Y-m-d')));
+        $end_date = $request->get('end_date', session('end_date', today()->format('Y-m-d')));
+
+        $purchase_returns = \Modules\PurchasesReturn\Entities\PurchaseReturn::whereDate('date', '>=', $start_date)
+            ->whereDate('date', '<=', $end_date)
             ->when($request->supplier_id, function ($query) use ($request) {
                 return $query->where('supplier_id', $request->supplier_id);
             })
@@ -454,7 +468,7 @@ class ReportsController extends Controller
             'Content-Type' => 'text/csv',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
-        
+
         $callback = function() use ($purchase_returns) {
             $file = fopen('php://output', 'w');
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
@@ -478,5 +492,227 @@ class ReportsController extends Controller
         };
         
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Export Sales Report as Excel
+     */
+    public function exportSalesReportExcel(Request $request) {
+        abort_if(Gate::denies('access_reports'), 403);
+
+        $start_date = $request->get('start_date', session('start_date', today()->subDays(30)->format('Y-m-d')));
+        $end_date = $request->get('end_date', session('end_date', today()->format('Y-m-d')));
+
+        $sales = \Modules\Sale\Entities\Sale::whereDate('date', '>=', $start_date)
+            ->whereDate('date', '<=', $end_date)
+            ->when($request->customer_id, function ($query) use ($request) {
+                return $query->where('customer_id', $request->customer_id);
+            })
+            ->when($request->sale_status, function ($query) use ($request) {
+                return $query->where('status', $request->sale_status);
+            })
+            ->when($request->payment_status, function ($query) use ($request) {
+                return $query->where('payment_status', $request->payment_status);
+            })
+            ->orderBy('date', 'desc')->get();
+
+        $filename = 'sales-report-' . date('Y-m-d') . '.xlsx';
+        $headers = ['Date', 'Reference', 'Customer', 'Status', 'Total', 'Paid', 'Due', 'Payment Status'];
+        
+        $data = $sales->map(function($sale) {
+            return [
+                \Carbon\Carbon::parse($sale->date)->format('d M Y'),
+                $sale->reference,
+                $sale->customer_name,
+                ucfirst($sale->status),
+                number_format($sale->total_amount / 100, 2, '.', ''),
+                number_format($sale->paid_amount / 100, 2, '.', ''),
+                number_format($sale->due_amount / 100, 2, '.', ''),
+                ucfirst($sale->payment_status),
+            ];
+        })->toArray();
+
+        $export = new class($data, $headers) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {
+            private $data;
+            private $headings;
+            public function __construct($data, $headings) { 
+                $this->data = $data; 
+                $this->headings = $headings; 
+            }
+            public function array(): array { return $this->data; }
+            public function headings(): array { return $this->headings; }
+        };
+
+        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+    }
+
+    /**
+     * Export Purchases Report as Excel
+     */
+    public function exportPurchasesReportExcel(Request $request) {
+        abort_if(Gate::denies('access_reports'), 403);
+
+        $start_date = $request->get('start_date', session('start_date', today()->subDays(30)->format('Y-m-d')));
+        $end_date = $request->get('end_date', session('end_date', today()->format('Y-m-d')));
+
+        $purchases = \Modules\Purchase\Entities\Purchase::whereDate('date', '>=', $start_date)
+            ->whereDate('date', '<=', $end_date)
+            ->when($request->supplier_id, function ($query) use ($request) {
+                return $query->where('supplier_id', $request->supplier_id);
+            })
+            ->when($request->purchase_status, function ($query) use ($request) {
+                return $query->where('status', $request->purchase_status);
+            })
+            ->orderBy('date', 'desc')->get();
+
+        $filename = 'purchases-report-' . date('Y-m-d') . '.xlsx';
+        $headers = ['Date', 'Reference', 'Supplier', 'Status', 'Total', 'Paid', 'Due'];
+        
+        $data = $purchases->map(function($purchase) {
+            return [
+                \Carbon\Carbon::parse($purchase->date)->format('d M Y'),
+                $purchase->reference,
+                $purchase->supplier_name,
+                ucfirst($purchase->status),
+                number_format($purchase->total_amount / 100, 2, '.', ''),
+                number_format($purchase->paid_amount / 100, 2, '.', ''),
+                number_format($purchase->due_amount / 100, 2, '.', ''),
+            ];
+        })->toArray();
+
+        $export = new class($data, $headers) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {
+            private $data;
+            private $headings;
+            public function __construct($data, $headings) { 
+                $this->data = $data; 
+                $this->headings = $headings; 
+            }
+            public function array(): array { return $this->data; }
+            public function headings(): array { return $this->headings; }
+        };
+
+        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+    }
+
+    /**
+     * Export Payments Report as Excel
+     */
+    public function exportPaymentsReportExcel(Request $request) {
+        abort_if(Gate::denies('access_reports'), 403);
+
+        $start_date = $request->get('start_date', session('start_date', today()->subDays(30)->format('Y-m-d')));
+        $end_date = $request->get('end_date', session('end_date', today()->format('Y-m-d')));
+
+        $payments = \Modules\Sale\Entities\SalePayment::whereDate('date', '>=', $start_date)
+            ->whereDate('date', '<=', $end_date)
+            ->when($request->payment_method, function ($query) use ($request) {
+                return $query->where('payment_method', $request->payment_method);
+            })
+            ->with(['sale'])
+            ->orderBy('date', 'desc')->get();
+
+        $filename = 'payments-report-' . date('Y-m-d') . '.xlsx';
+        $headers = ['Date', 'Sale Reference', 'Customer', 'Payment Method', 'Amount'];
+        
+        $data = $payments->map(function($payment) {
+            return [
+                \Carbon\Carbon::parse($payment->date)->format('d M Y'),
+                $payment->sale->reference ?? '-',
+                $payment->sale->customer_name ?? 'Walk-in Customer',
+                ucfirst($payment->payment_method),
+                number_format($payment->amount / 100, 2, '.', ''),
+            ];
+        })->toArray();
+
+        $export = new class($data, $headers) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {
+            private $data;
+            private $headings;
+            public function __construct($data, $headings) { 
+                $this->data = $data; 
+                $this->headings = $headings; 
+            }
+            public function array(): array { return $this->data; }
+            public function headings(): array { return $this->headings; }
+        };
+
+        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+    }
+
+    /**
+     * Export Sales Return Report as Excel
+     */
+    public function exportSalesReturnReportExcel(Request $request) {
+        abort_if(Gate::denies('access_reports'), 403);
+
+        $start_date = $request->get('start_date', session('start_date', today()->subDays(30)->format('Y-m-d')));
+        $end_date = $request->get('end_date', session('end_date', today()->format('Y-m-d')));
+
+        $sales_returns = \Modules\SalesReturn\Entities\SaleReturn::whereDate('date', '>=', $start_date)
+            ->whereDate('date', '<=', $end_date)
+            ->orderBy('date', 'desc')->get();
+
+        $filename = 'sales-return-report-' . date('Y-m-d') . '.xlsx';
+        $headers = ['Date', 'Reference', 'Customer', 'Total Amount'];
+        
+        $data = $sales_returns->map(function($return) {
+            return [
+                \Carbon\Carbon::parse($return->date)->format('d M Y'),
+                $return->reference,
+                $return->customer_name,
+                number_format($return->total_amount / 100, 2, '.', ''),
+            ];
+        })->toArray();
+
+        $export = new class($data, $headers) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {
+            private $data;
+            private $headings;
+            public function __construct($data, $headings) { 
+                $this->data = $data; 
+                $this->headings = $headings; 
+            }
+            public function array(): array { return $this->data; }
+            public function headings(): array { return $this->headings; }
+        };
+
+        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
+    }
+
+    /**
+     * Export Purchases Return Report as Excel
+     */
+    public function exportPurchasesReturnReportExcel(Request $request) {
+        abort_if(Gate::denies('access_reports'), 403);
+
+        $start_date = $request->get('start_date', session('start_date', today()->subDays(30)->format('Y-m-d')));
+        $end_date = $request->get('end_date', session('end_date', today()->format('Y-m-d')));
+
+        $purchases_returns = \Modules\PurchasesReturn\Entities\PurchaseReturn::whereDate('date', '>=', $start_date)
+            ->whereDate('date', '<=', $end_date)
+            ->orderBy('date', 'desc')->get();
+
+        $filename = 'purchases-return-report-' . date('Y-m-d') . '.xlsx';
+        $headers = ['Date', 'Reference', 'Supplier', 'Total Amount'];
+        
+        $data = $purchases_returns->map(function($return) {
+            return [
+                \Carbon\Carbon::parse($return->date)->format('d M Y'),
+                $return->reference,
+                $return->supplier_name,
+                number_format($return->total_amount / 100, 2, '.', ''),
+            ];
+        })->toArray();
+
+        $export = new class($data, $headers) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {
+            private $data;
+            private $headings;
+            public function __construct($data, $headings) { 
+                $this->data = $data; 
+                $this->headings = $headings; 
+            }
+            public function array(): array { return $this->data; }
+            public function headings(): array { return $this->headings; }
+        };
+
+        return \Maatwebsite\Excel\Facades\Excel::download($export, $filename);
     }
 }

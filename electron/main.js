@@ -1,87 +1,60 @@
-const { app, BrowserWindow, dialog } = require('electron');
-const path = require('path');
-const LaravelServer = require('./LaravelServer');
-const DatabaseManager = require('./DatabaseManager'); // Assuming it's needed
+import { app, BrowserWindow } from 'electron';
+import path from 'path';
+import { startPhpServer, stopPhpServer } from './spawn-php.js';
+import { autoUpdater } from 'electron-updater';
+
+// Auto-update configuration (requires publish target - e.g., GitHub Releases)
+autoUpdater.autoDownload = false;
+autoUpdater.logger = require('electron-log');
+autoUpdater.logger.transports.file.level = 'info';
+
 
 let mainWindow;
-let laravelServer;
 
-async function createWindow() {
-  console.log('🚀 Creating window...');
-  const startTime = Date.now();
-  
+function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    show: false, // Don't show until ready
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'), // If you have a preload script
-      nodeIntegration: false, // Keep false for security
-      contextIsolation: true, // Keep true for security
-      // Allow loading insecure content (for localhost HTTP) - be careful in production
-      webSecurity: false 
-    }
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
   });
 
-  // Load an initial loading screen or a blank page
-  mainWindow.loadURL('about:blank'); 
-
-  // Initialize and start Laravel server
-  laravelServer = new LaravelServer();
-  
-  try {
-    console.log('⏳ Starting Laravel server...');
-    const serverStart = Date.now();
-    
-    await laravelServer.start();
-    const serverTime = Date.now() - serverStart;
-    console.log(`✅ Laravel server started on port ${laravelServer.getPort()} (${serverTime}ms)`);
-
-    // Once server is ready, load the Laravel app with the correct port
-    const port = laravelServer.getPort();
-    console.log(`📡 Loading app from http://127.0.0.1:${port}...`);
-    const loadStart = Date.now();
-    
-    mainWindow.loadURL(`http://127.0.0.1:${port}`);
-    
-    mainWindow.once('ready-to-show', () => {
-      const loadTime = Date.now() - loadStart;
-      const totalTime = Date.now() - startTime;
-      console.log(`📺 Window ready (${loadTime}ms) - Total startup: ${totalTime}ms`);
-      mainWindow.show();
-    });
-
-  } catch (error) {
-    dialog.showErrorBox(
-      'Application Error',
-      `Failed to start the application. Please check the logs.\nError: ${error.message}`
-    );
-    console.error('❌ Failed to start application:', error);
-    app.quit();
-  }
-
+  // Load the bundled Laravel app via the embedded server
+  const url = 'http://127.0.0.1:8000';
+  mainWindow.loadURL(url).catch((err) => console.error('Failed to load URL', err));
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(async () => {
+  try {
+    await startPhpServer({
+      bundlePath: path.join(process.resourcesPath || process.cwd(), 'resources', 'bundle'),
+      port: 8000,
+    });
+  } catch (e) {
+    console.error('Failed to start bundled PHP', e);
+  }
+
+  createMainWindow();
+  // Check for updates in background (non-blocking)
+  autoUpdater.checkForUpdatesAndNotify().catch((err) => {
+    console.warn('Auto-updater check failed:', err);
+  });
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
+  });
+});
+
+app.on('before-quit', async (e) => {
+  await stopPhpServer();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
-  }
-});
-
-app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
-
-app.on('before-quit', async () => {
-  if (laravelServer && laravelServer.isRunning()) {
-    console.log('Stopping Laravel server before quitting...');
-    await laravelServer.stop();
   }
 });

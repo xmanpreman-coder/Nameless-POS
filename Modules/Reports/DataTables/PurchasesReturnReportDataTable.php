@@ -2,7 +2,7 @@
 
 namespace Modules\Reports\DataTables;
 
-use Modules\PurchasesReturn\Entities\PurchasesReturn;
+use Modules\PurchasesReturn\Entities\PurchaseReturn;
 use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
 use Yajra\DataTables\Services\DataTable;
@@ -28,7 +28,7 @@ class PurchasesReturnReportDataTable extends DataTable
             ->rawColumns(['status']);
     }
 
-    public function query(PurchasesReturn $model)
+    public function query(PurchaseReturn $model)
     {
         return $model->newQuery()
             ->when(request('start_date'), function($query) {
@@ -57,11 +57,11 @@ class PurchasesReturnReportDataTable extends DataTable
                     ->action('function() { window.location.href = "' . route("purchase-returns.create") . '"; }'),
                 Button::make('excel')
                     ->text('<i class="bi bi-file-earmark-excel"></i> Excel')
-                    ->extend('excel')
-                    ->className('btn btn-success')
-                    ->exportOptions([
-                        'columns' => ':visible'
-                    ]),
+                    ->action('function() { 
+                        const url = "'.route('purchases-return-report.export-excel').'" + window.location.search;
+                        window.location.href = url;
+                    }')
+                    ->className('btn btn-success'),
                 Button::make('print')
                     ->text('<i class="bi bi-printer-fill"></i> Print')
                     ->action('function() {
